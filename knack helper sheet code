@@ -615,8 +615,11 @@ function emailRemittanceAdvice() {
   Browser.msgBox('Done', 'You have now finished creating the Remittance Advice sheets.', Browser.Buttons.OK);
 }
     
-function OnForm(){
-  var sh = SpreadsheetApp.getActiveSheet()
+function GenerateNextUniqueNumberInColumnA(){
+
+  var sh = SpreadsheetApp.getActiveSpreadsheet();
+  var InvoiceSheet = sh.getSheetByName("Unique_Invoice");
+  
   var startcell = sh.getRange('A1').getValue();
   if(! startcell){sh.getRange('A1').setValue(1);return}; // this is only to handle initial situation when A1 is empty.
   var colValues = sh.getRange('A1:A').getValues();// get all the values in column A in an array
@@ -625,5 +628,5 @@ function OnForm(){
     if(Number(colValues[r][0]>max)){max=colValues[r][0]};// get the highest numeric value in th column, no matter what happens in the column... this runs at array level so it is very fast
   }
   max++ ; // increment to be 1 above max value
-  sh.getRange(sh.getLastRow()+1, 1).setValue(max);// and write it back to sheet's last row.
+  InvoiceSheet.getRange(InvoiceSheet.getLastRow()+1, 1).setValue(max);// and write it back to sheet's last row.
 }
