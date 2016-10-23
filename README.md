@@ -2,6 +2,6 @@
 NZPR Google Apps Script Code;
 For doing certain things with data
 
-Payment Advice Notes code is the currently used code for processing Payment Advice Notes
+Payment Advice Notes Calculator code is the currently used code for processing Payment Advice Notes
 
-MR70 code is trial code for the MR70 calculator currrently being developed
+knack helper sheet code is trial code for the MR70 calculator currrently being developed
