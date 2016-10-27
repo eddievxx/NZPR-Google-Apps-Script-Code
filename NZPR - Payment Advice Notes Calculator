@@ -248,6 +248,7 @@ function emailRemittanceAdvice() {
           data[i][9],
           data[i][10],
           data[i][11],
+          data[i][15]                   
         ]);
       ClientsName[j] = data[i][6];
       }
@@ -259,8 +260,8 @@ function emailRemittanceAdvice() {
     var date = Utilities.formatDate(new Date(), "GMT+12", "dd-MM-yyyy'T'HH:mm:ss'Z'");
 
     // Send the PDF of the spreadsheet to this email address
-    //var email = "bernard@nzpetrolrefunds.co.nz";
-    var email = "bernard@nzpetrolrefunds.co.nz";//********************************************************************************** FOR TRIAL CODE ONLY
+    var email = "bernard@nzpetrolrefunds.co.nz";
+    //var email = "nathanjeffreyyoung@gmail.com";//********************************************************************************** FOR TESTING ONLY!!!
         
     // Subject of email message
     var subject = ClientsName[j] +" Invoice(s) " + date.toString();
@@ -585,3 +586,4 @@ var sheet = ss.getSheetByName("Data_Sheet");   // If TODAY function is used in t
   if (MailApp.getRemainingDailyQuota() > 0) 
      GmailApp.sendEmail(email, subject, body, {attachments:[blobs[1].getAs(MimeType.PDF),blobs[2].getAs(MimeType.PDF),blobs[3].getAs(MimeType.PDF),blobs[4].getAs(MimeType.PDF),blobs[5].getAs(MimeType.PDF)], name: 'Sales Leads'});
 }
+
