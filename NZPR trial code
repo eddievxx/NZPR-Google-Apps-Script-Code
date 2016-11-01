@@ -223,9 +223,8 @@ function emailRemittanceAdvice() {
     var date = Utilities.formatDate(new Date(), "GMT+12", "dd-MM-yyyy'T'HH:mm:ss'Z'");
     
     // Send the PDF of the spreadsheet to this email address
-    //var email = "bernard@nzpetrolrefunds.co.nz";
     //var email = "nathanjeffreyyoung@gmail.com";//********************************************************************************** FOR TRIAL CODE ONLY
-    var email = (ClientsEmail[j] + ", barleybender@gmail.com");
+    var email = ("barleybender@gmail.com, "+ClientsEmail[j]);
     
     // Subject of email message
     var subject = ClientsName[j] +" Invoice(s) " + date.toString();
@@ -473,9 +472,3 @@ function mergeAndSingle() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
