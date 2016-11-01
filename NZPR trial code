@@ -67,24 +67,11 @@ function feeChecks() {
   
   var data = firstSheet.getDataRange().getValues();    //storing all the data on the page in an array for use in all calcs
   
-  //var ListOfFEDNumbers = [0];
-  //var ListOfFEDNumbers = firstSheet.getRange("N2:N"+(numberOfFEDNumbers+1)).getValues();   //storing the list of unique FED numbers
-  //var ListOfFEDNumbers = firstSheet.getRange(2,14).getValues();   //storing the list of unique FED numbers
-  //var ListOfFEDNumbers = firstSheet.getDataRange().getValues();
-  for(n=0; n < numberOfFEDNumbers; ++n){
+   for(n=0; n < numberOfFEDNumbers; ++n){
     ListOfFEDNumbers[n] = data[n+1][13]; // 13 is the index of the column (starting from 0)
   }
-  
-  //Logger.log(numberOfFEDNumbers);
-  //Logger.log(ListOfFEDNumbers);
-  
+
   var targetFED;// = ListOfFEDNumbers[1][0];
-  
-  //var BtotalCredit = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];     //initialises the Amount array ********************************* THIS NEEDS IMPROVEMENT
-  //var DreferenceNumber = ['| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| '];   //initialises the Ref Number **********NEEDS IMPROVEMENT
-  //var EclaimPeriod = ['| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| ','| '];       //initialises the Claim Period ********NEEDS IMPROVEMENT
-  //var Ffee = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];              // ********************************************************** THIS NEEDS IMPROVEMENT
-    
   var BtotalCredit = new Array(numberOfFEDNumbers);
   var DreferenceNumber = new Array(numberOfFEDNumbers);
   var EclaimPeriod = new Array(numberOfFEDNumbers);
@@ -97,11 +84,6 @@ function feeChecks() {
     Ffee[i] = 0;
   }
   
-  Logger.log(BtotalCredit);
-  Logger.log(DreferenceNumber);
-  Logger.log(EclaimPeriod);
-  Logger.log(Ffee);
-  
   var CpaymentDate = [];
   var GclientName = [];
   var Hagent = [];
@@ -111,11 +93,12 @@ function feeChecks() {
   var KclientRefund = [];
   var LagentCommission = [];
   
+  var ClientsEmail = [];
+  
   var maxRefund = []; //a variable to display the maximum variable allowable if the tax back isn't enough to cover their fee
    
   //for (var j = 1; j < ListOfFEDNumbers.length-1; j++){  //loop for each unique FED Number
   for (var j = 0; j < numberOfFEDNumbers; j++){  //loop for each unique FED Number
-    //targetFED = ListOfFEDNumbers[j][0];
     targetFED = ListOfFEDNumbers[j];
     
     for (var i = 1; i < data.length; i++){   //loop for each line in the spreadsheet
@@ -128,11 +111,13 @@ function feeChecks() {
         GclientName[j] = data[i][6];
         Hagent[j] = data[i][7];
         IagentCut[j] = data[i][8];
+        ClientsEmail[j] = data[i][12];
       }
       
       JnzprCommission[j] = BtotalCredit[j]*NZPRcommisionRate+Ffee[j];
       KclientRefund[j] = BtotalCredit[j]*(1-NZPRcommisionRate)-Ffee[j];
       LagentCommission[j] = BtotalCredit[j]*(IagentCut[j]/100);
+      
       
       //Sends to Logger
       ///*
@@ -148,139 +133,107 @@ function feeChecks() {
       Logger.log("RefNo: "            + DreferenceNumber[j]);
       Logger.log("Commision: "        + JnzprCommission[j]);
       Logger.log("Refund: "           + KclientRefund[j]);
+      Logger.log("email: "            + ClientsEmail[j]);
       Logger.log("  ");
       //*/
     }
-    maxRefund[j] = 343.85 + KclientRefund[j];
+    maxRefund[j] = Ffee[j] + KclientRefund[j];//previously had 343.85 instead of Ffee[j] which caused errors when fee was changed.
     if(KclientRefund[j] < 0){
       Browser.msgBox('Fee Check', 'Fee will be too large for '+GclientName[j]+', current refund is '+KclientRefund[j]+'. Max refund is '+maxRefund[j]+'. Reduce the fee then run this Check again.', Browser.Buttons.OK);
       return;
     }
+
+    if(ClientsEmail[j] == ""){
+      Browser.msgBox('Email Address Check', 'No email address for '+GclientName[j]+', add their email to the Client sheet then run this Check again.', Browser.Buttons.OK);
+      return;
+    }
     
-      
-    
-    /*
-    secondSheet.getRange(j+2,1).setValue(ListOfFEDNumbers[j]);
-    secondSheet.getRange(j+2,2).setValue(BtotalCredit[j]);           //this is writing the merged data to the correct cells on the 2nd sheet
-    secondSheet.getRange(j+2,3).setValue(CpaymentDate[j]);
-    secondSheet.getRange(j+2,4).setValue(DreferenceNumber[j]);
-    secondSheet.getRange(j+2,5).setValue(EclaimPeriod[j]);
-    secondSheet.getRange(j+2,6).setValue(Ffee[j]);
-    secondSheet.getRange(j+2,7).setValue(GclientName[j]);
-    secondSheet.getRange(j+2,8).setValue(Hagent[j]);
-    secondSheet.getRange(j+2,9).setValue(IagentCut[j]);
-    secondSheet.getRange(j+2,10).setValue(JnzprCommission[j]);     
-    secondSheet.getRange(j+2,11).setValue(KclientRefund[j]);
-    secondSheet.getRange(j+2,12).setValue(LagentCommission[j]);    
-    */
   }
-  //firstSheet.getRange(2, 1, firstSheet.getLastRow(), firstSheet.getLastColumn()).clear();    //clears the sheet
-  Browser.msgBox('Fee Check', 'All Refund amounts are positive, you can now Create pdfs', Browser.Buttons.OK);
+  Browser.msgBox('Fee Check', 'All Refund amounts are positive & email addresses exist, you can now Create pdfs', Browser.Buttons.OK);
 }
 
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function emailRemittanceAdvice() {
-  var NZPRcommisionRate = 0.15; //this is where the NZPR commision is set
 
   var ListOfFEDNumbers = [];
 
   var ss = SpreadsheetApp.getActiveSpreadsheet(); //naming the spreadsheet and sheets
-  //var ss = SpreadsheetApp.getSpreadsheetByName("NZPR - Payment Advice Notes Calculator");
   var inboxSheet = ss.getSheetByName("Inbox_Sheet");
   var dataSheet = ss.getSheetByName("Data_Sheet");
   var templateSheet = ss.getSheetByName("Commision_Invoice");
 
   inboxSheet.getRange("N2").setFormula("=UNIQUE(A2:A)");
   inboxSheet.getRange("O2").setFormula("=COUNTA(N2:N)");
-
+  
   var numberOfFEDNumbers = inboxSheet.getRange(2, 15).getValues();
-
+  
   var data = inboxSheet.getDataRange().getValues(); //storing all the data on the page in an array for use in all calcs
   var refundData; //as above but from the refund template; when populated
-  //var ListOfFEDNumbers = [0];
-  //var ListOfFEDNumbers = firstSheet.getRange("N2:N"+(numberOfFEDNumbers+1)).getValues();   //storing the list of unique FED numbers
-  //var ListOfFEDNumbers = firstSheet.getRange(2,14).getValues();   //storing the list of unique FED numbers
-  //var ListOfFEDNumbers = firstSheet.getDataRange().getValues();
   for (n = 0; n < numberOfFEDNumbers; ++n) {
     ListOfFEDNumbers[n] = data[n + 1][13]; // 13 is the index of the column (starting from 0)
   }
-
-  Logger.log(numberOfFEDNumbers);
-  Logger.log(ListOfFEDNumbers);
-
+  
   var targetFED; // = ListOfFEDNumbers[1][0];
-
-  //var BtotalCredit = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; //initialises the Amount array ********************************* THIS NEEDS IMPROVEMENT
-  //var CpaymentDate = [];
-  //var DreferenceNumber = ['| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ']; //initialises the Ref Number **********NEEDS IMPROVEMENT
-  //var EclaimPeriod = ['| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ', '| ']; //initialises the Claim Period ********NEEDS IMPROVEMENT
-  //var Ffee = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // ********************************************************** THIS NEEDS IMPROVEMENT
-  //var GclientName = [];
-  //var Hagent = [];
-  //var IagentCut = [];
-
-  //var JnzprCommission = [];
-  //var KclientRefund = [];
-  //var LagentCommission = [];
-
+  
   var ClientsName = [];
   var ClientsEmail = [];
-  //var email;
-  
-  //for (var j = 1; j < ListOfFEDNumbers.length-1; j++){  //loop for each unique FED Number
-  for (var j = 0; j < numberOfFEDNumbers; j++) { //loop for each unique FED Number to store the caluclated values
-    //targetFED = ListOfFEDNumbers[j][0];
-    targetFED = ListOfFEDNumbers[j];
 
+  var ClientsFee = new Array(numberOfFEDNumbers); //creates the array ClientsFee, with a length of numberOfFEDNumbers
+  for (var i = 0; i < numberOfFEDNumbers; i++) {  //fills the array ClientsFee with 0s
+    ClientsFee[i] = 0;
+  }
+  
+  for (var j = 0; j < numberOfFEDNumbers; j++) { //loop for each unique FED Number to store the caluclated values
+    targetFED = ListOfFEDNumbers[j];
+    
     for (var i = 1; i < data.length; i++) { //loop for each line in the spreadsheet
       if (data[i][0] == targetFED) { //ensures the data stored in each of the following arrays is for each unique FED number
-
-
+        
         dataSheet.appendRow([data[i][0],//writes data from the correct FED number only to the data_sheet
-          data[i][1],
-          data[i][2],
-          data[i][3],
-          data[i][4],
-          data[i][5],
-          data[i][6],
-          data[i][7],
-          data[i][8],
-          data[i][9],
-          data[i][10],
-          data[i][11],
-          data[i][12]                   
-        ]);
-      ClientsName[j] = data[i][6];
-      ClientsEmail[j] = data[i][12];                    
-      //email = ClientsEmail[j];
+                             data[i][1],
+                             data[i][2],
+                             data[i][3],
+                             data[i][4],
+                             data[i][5],
+                             data[i][6],
+                             data[i][7],
+                             data[i][8],
+                             data[i][9],
+                             data[i][10],
+                             data[i][11],
+                             data[i][12]                   
+                            ]);
+        ClientsName[j] = data[i][6];
+        ClientsEmail[j] = data[i][12];
+        ClientsFee[j] += data[i][5];
+        
       }
-      
+
     }
-    clearDataSheet();
-    //PDF CONVERSION AND EMAIL SECTION OF CODE////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                                                         
     Logger.log(ClientsName[j]);
     Logger.log(ClientsEmail[j]);
-    Logger.log(email);
+    Logger.log(ClientsFee[j]);
+    
+    clearDataSheet();
+    
+    //PDF CONVERSION AND EMAIL SECTION OF CODE///////////////////////////////////////////                                                        
     var date = Utilities.formatDate(new Date(), "GMT+12", "dd-MM-yyyy'T'HH:mm:ss'Z'");
-        
+    
     // Send the PDF of the spreadsheet to this email address
     //var email = "bernard@nzpetrolrefunds.co.nz";
     //var email = "nathanjeffreyyoung@gmail.com";//********************************************************************************** FOR TRIAL CODE ONLY
-    var email = ClientsEmail[j];
+    var email = (ClientsEmail[j] + ", barleybender@gmail.com");
     
-    //Logger.log(email);
-        
     // Subject of email message
     var subject = ClientsName[j] +" Invoice(s) " + date.toString();
-
+    
     // Email Body can  be HTML too with your logo image - see ctrlq.org/html-mail
     var body = ClientsName[j] +" Invoice(s) " + date.toString();
-
+    
     var url = ss.getUrl();
     url = url.replace(/edit$/, '');
-    //Logger.log(url);
 
     /* Specify PDF export parameters
     // From: https://code.google.com/p/google-apps-script-issues/issues/detail?id=3579
@@ -309,48 +262,78 @@ function emailRemittanceAdvice() {
     //make an empty array to hold your fetched blobs  
     var blobs = [];
 
+    ///////////////////////////////////////////////////////////////
+    if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent
+    
       for (var i = 6; i < 9; i++) {//selecting sheets 6-9 to turn into pdf and email
 
-      // Convert individual worksheets to PDF
-      var response = cUseful.Utils.expBackoff(
-        function() {
-          return UrlFetchApp.fetch(url + url_ext + sheets[i].getSheetId(), {
-            headers: {
-              'Authorization': 'Bearer ' + token
-            },
-            muteHttpExceptions: true,
+        // Convert individual worksheets to PDF
+        var response = cUseful.Utils.expBackoff(
+          function() {
+            return UrlFetchApp.fetch(url + url_ext + sheets[i].getSheetId(), {
+              headers: {
+                'Authorization': 'Bearer ' + token
+              },
+                muteHttpExceptions: true,
+            });
+          }, {
+            logAttempts: true,
+            lookahead: function(r) {
+              return r.getResponseCode() === 429;
+            }
           });
-        }, {
-          logAttempts: true,
-          lookahead: function(r) {
-            return r.getResponseCode() === 429;
-          }
-        });
 
-      //convert the response to a blob and store in our array
-      //blobs[i] = response.getBlob().setName('Invoice ' + date.toString() + '.pdf');
-      blobs[i] = response.getBlob().setName(sheets[i].getName() + '.pdf');
-
-    }
-
-    // If allowed to send emails, send the email with the PDF attachment
-    if (MailApp.getRemainingDailyQuota() > 0)
-      GmailApp.sendEmail(email, subject, body, {
+        //convert the response to a blob and store in our array
+        //blobs[i] = response.getBlob().setName('Invoice ' + date.toString() + '.pdf');
+        blobs[i] = response.getBlob().setName(sheets[i].getName() + '.pdf');
+        
+      }
+      if (MailApp.getRemainingDailyQuota() > 0)
+            GmailApp.sendEmail(email, subject, body, {
         attachments: [blobs[6].getAs(MimeType.PDF),blobs[7].getAs(MimeType.PDF),blobs[8].getAs(MimeType.PDF)],
         name: 'NZ Petrol Refunds'
       });
+    }
+    else {
+      for (var i = 6; i < 8; i++) {//selecting sheets 6-9 to turn into pdf and email
+        
+        // Convert individual worksheets to PDF
+        var response = cUseful.Utils.expBackoff(
+          function() {
+            return UrlFetchApp.fetch(url + url_ext + sheets[i].getSheetId(), {
+                headers: {
+                  'Authorization': 'Bearer ' + token
+                },
+                  muteHttpExceptions: true,
+            });
+          }, {
+            logAttempts: true,
+            lookahead: function(r) {
+              return r.getResponseCode() === 429;
+            }
+          });
+        
+        //convert the response to a blob and store in our array
+        //blobs[i] = response.getBlob().setName('Invoice ' + date.toString() + '.pdf');
+        blobs[i] = response.getBlob().setName(sheets[i].getName() + '.pdf');
+      }
+      if (MailApp.getRemainingDailyQuota() > 0)
+        GmailApp.sendEmail(email, subject, body, {
+          attachments: [blobs[6].getAs(MimeType.PDF),blobs[7].getAs(MimeType.PDF)],
+          name: 'NZ Petrol Refunds'
+        });
+      
+    }
+   
     //END OF PDF AND EMAIL SECTION OF CODE/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////      
 
 
-    //Browser.msgBox('Populating Template', 'You have now populated one clients invoices.', Browser.Buttons.OK);
   }
 
-
-
-  //inboxSheet.getRange(2, 1, inboxSheet.getLastRow(), inboxSheet.getLastColumn()).clear();    //clears the sheet
   Browser.msgBox('Done', 'The Invoice pdfs for each client have been created and sent.', Browser.Buttons.OK);
 }
-    
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
 function clearDataSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var dataSheet = ss.getSheetByName("Data_Sheet");
@@ -391,11 +374,7 @@ function mergeAndSingle() {
                   data[k][8],
                  ]);
   }
-    
-  //var ListOfFEDNumbers = [0];
-  //var ListOfFEDNumbers = inboxSheet.getRange("N2:N"+(numberOfFEDNumbers+1)).getValues();   //storing the list of unique FED numbers
-  //var ListOfFEDNumbers = inboxSheet.getRange(2,14).getValues();   //storing the list of unique FED numbers
-  //var ListOfFEDNumbers = inboxSheet.getDataRange().getValues();
+
   for(n=0; n < numberOfFEDNumbers; ++n){
     ListOfFEDNumbers[n] = data[n+1][13]; // 13 is the index of the column (starting from 0)
   }
@@ -435,21 +414,6 @@ function mergeAndSingle() {
     
     for (var i = 1; i < data.length; i++){   //loop for each line in the spreadsheet
       
-      //sends a copy of each line to single sheet
-      //    singleSheet.appendRow([data[i][1],
-      //                           data[i][2],
-      //                           data[i][3],
-      //                           data[i][4],
-      //                           data[i][5],
-      //                           data[i][6],
-      //                           data[i][7],
-      //                           data[i][8],
-      //                           data[i][9],
-      //                           data[i][10],
-      //                           data[i][11],
-      //                           data[i][12],
-      //                                                           
-      //                    ]);
       
       //merges and sends data to merged_sheet
       if(data[i][0] == targetFED){           //ensures the data stored in each of the following arrays is for each unique FED number
@@ -507,91 +471,4 @@ function mergeAndSingle() {
   Browser.msgBox('Merge & Clear', 'You have now finished with the Spreadsheet. The merged rows have been added to the "Merged_Sheet" to be sent to Xero.', Browser.Buttons.OK);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-function emailSpreadsheetAsPDF() {
-  
-// Mail is schedule from Autoreport2015 
-  
-var ss = SpreadsheetApp.getActiveSpreadsheet();  
-var sheet = ss.getSheetByName("Data_Sheet");   // If TODAY function is used in the DATA sheet, EXECUTE the following statements FLUSH.
-//sheet.getRange("AG2").setFormula( '=arrayformula( if( len(A2:A), Q2:Q/100000, iferror(1/0) ) )' );
-//SpreadsheetApp.flush();
-
-  
-  // Send the PDF of the spreadsheet to this email address
- 
-  var email = "nathanjeffreyyoung@gmail.com"; 
- 
-  // Subject of email message
-  // The date time string can be formatted in your timezone using Utilities.formatDate method
-  var subject = "Sales Lead Analysis - " + (new Date()).toString(); 
- 
-  // Get the currently active spreadsheet URL (link)
-  // Or use SpreadsheetApp.openByUrl("<<SPREADSHEET URL>>");
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  // Email Body can  be HTML too with your logo image - see ctrlq.org/html-mail
-  var body = "Sales Lead Analysis Report " + ss.getName(); 
- 
-  var url = ss.getUrl();
-  url = url.replace(/edit$/,'');
-  
-  /* Specify PDF export parameters
-  // From: https://code.google.com/p/google-apps-script-issues/issues/detail?id=3579
-    exportFormat = pdf / csv / xls / xlsx
-    gridlines = true / false
-    printtitle = true (1) / false (0)
-    size = legal / letter/ A4
-    fzr (repeat frozen rows) = true / false
-    portrait = true (1) / false (0)
-    fitw (fit to page width) = true (1) / false (0)
-    add gid if to export a particular sheet - 0, 1, 2,..
-  */
- 
-  var url_ext = 'export?exportFormat=pdf&format=pdf'   // export as pdf
-                + '&size=letter'                       // paper size
-                + '&portrait=false'                    // orientation, false for landscape
-                + '&fitw=true&source=labnol'           // fit to width, false for actual size
-                + '&sheetnames=false&printtitle=false' // hide optional headers and footers
-                + '&pagenumbers=false&gridlines=false' // hide page numbers and gridlines
-                + '&fzr=false'                         // do not repeat row headers (frozen rows) on each page
-                + '&gid=';                             // the sheet's Id
-  
-  var token = ScriptApp.getOAuthToken();
-  var sheets = ss.getSheets(); 
-     
-  //make an empty array to hold your fetched blobs  
-  var blobs = [];
- 
-  for (var i=0; i<sheets.length; i++) {
-    
-    // Convert individual worksheets to PDF
-    var response = cUseful.Utils.expBackoff (
-      function () {
-        return UrlFetchApp.fetch(url + url_ext  + sheets[i].getSheetId(),{headers: {'Authorization': 'Bearer ' +  token},
-          muteHttpExceptions:true,                     
-        });
-      }, {
-      logAttempts:true,
-        lookahead:function (r) {return r.getResponseCode() === 429;}
-      });
- 
-    //convert the response to a blob and store in our array
-    blobs[i] = response.getBlob().setName(sheets[i].getName() + '.pdf');
- 
-  }
-  
-  //create new blob that is a zip file containing our blob array
-  //var zipBlob = Utilities.zip(blobs).setName(ss.getName() + '.zip'); 
-  
-  //optional: save the file to the root folder of Google Drive
-  //DriveApp.createFile(zipBlob);
-  
-  // Define the scope
-  Logger.log("Storage Space used: " + DriveApp.getStorageUsed());
- 
-  // If allowed to send emails, send the email with the PDF attachment
-  if (MailApp.getRemainingDailyQuota() > 0) 
-     GmailApp.sendEmail(email, subject, body, {attachments:[blobs[1].getAs(MimeType.PDF),blobs[2].getAs(MimeType.PDF),blobs[3].getAs(MimeType.PDF),blobs[4].getAs(MimeType.PDF),blobs[5].getAs(MimeType.PDF)], name: 'Sales Leads'});
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
