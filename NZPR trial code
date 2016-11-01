@@ -203,7 +203,8 @@ function emailRemittanceAdvice() {
                              data[i][9],
                              data[i][10],
                              data[i][11],
-                             data[i][12]                   
+                             data[i][12],
+                             data[i][15] 
                             ]);
         ClientsName[j] = data[i][6];
         ClientsEmail[j] = data[i][12];
@@ -472,3 +473,9 @@ function mergeAndSingle() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
