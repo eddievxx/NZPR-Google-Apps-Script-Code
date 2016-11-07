@@ -223,8 +223,8 @@ function emailRemittanceAdvice() {
     var date = Utilities.formatDate(new Date(), "GMT+12", "dd-MM-yyyy'T'HH:mm:ss'Z'");
     
     // Send the PDF of the spreadsheet to this email address
-    //var email = "nathanjeffreyyoung@gmail.com";//********************************************************************************** FOR TRIAL CODE ONLY
-    var email = ("barleybender@gmail.com, "+ClientsEmail[j]);
+    var email = "nathanjeffreyyoung@gmail.com";//********************************************************************************** FOR TRIAL CODE ONLY
+    //var email = ("barleybender@gmail.com, "+ClientsEmail[j]);
     
     // Subject of email message
     var subject = ClientsName[j] +" Invoice(s) " + date.toString();
@@ -329,8 +329,9 @@ function emailRemittanceAdvice() {
 
 
   }
-
-  Browser.msgBox('Done', 'The Invoice pdfs for each client have been created and sent.', Browser.Buttons.OK);
+  inboxSheet.getRange(2, 1, inboxSheet.getLastRow(), inboxSheet.getLastColumn()).clear();    //clears the sheet
+  //Browser.msgBox('Done', 'The Invoice pdfs for each client have been created and sent.', Browser.Buttons.OK);
+  Browser.msgBox('Done', 'The Invoice pdfs for each client have been created and sent; and the Inbox_Sheet cleared', Browser.Buttons.OK);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
@@ -344,7 +345,7 @@ function clearDataSheet() {
  
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //This function is in use; it merges client's NZTA emails into one per client and sends to Xero, also copies individual lines for sending to Xero for NZTA invoices
-function mergeAndSingle() {
+function sendToXero() {
   var NZPRcommisionRate = 0.15;        //this is where the NZPR commision is set
   
   var ListOfFEDNumbers = [];
@@ -467,8 +468,9 @@ function mergeAndSingle() {
    
   }
   
-  inboxSheet.getRange(2, 1, inboxSheet.getLastRow(), inboxSheet.getLastColumn()).clear();    //clears the sheet
-  Browser.msgBox('Merge & Clear', 'You have now finished with the Spreadsheet. The merged rows have been added to the "Merged_Sheet" to be sent to Xero.', Browser.Buttons.OK);
+    //inboxSheet.getRange(2, 1, inboxSheet.getLastRow(), inboxSheet.getLastColumn()).clear();    //clears the sheet
+    //Browser.msgBox('Merge & Clear', 'You have now finished with the Spreadsheet. The merged rows have been added to the "Merged_Sheet" to be sent to Xero.', Browser.Buttons.OK);
+    Browser.msgBox('Send to Xero', 'The payment information has been sent to Xero.', Browser.Buttons.OK);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
