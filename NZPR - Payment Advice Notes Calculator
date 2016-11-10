@@ -149,7 +149,7 @@ function feeChecks() {
     }
     
   }
-  Browser.msgBox('Fee Check', 'All Refund amounts are positive & email addresses exist, you can now Create pdfs', Browser.Buttons.OK);
+  Browser.msgBox('Fee Check', 'All Refund amounts are positive & email addresses exist, you can now Send to Xero', Browser.Buttons.OK);
 }
 
 
@@ -223,7 +223,8 @@ function emailRemittanceAdvice() {
     var date = Utilities.formatDate(new Date(), "GMT+12", "dd-MM-yyyy'T'HH:mm:ss'Z'");
     
     // Send the PDF of the spreadsheet to this email address
-    var email = ("bernard@nzpetrolrefunds.co.nz, "+ClientsEmail[j]);
+    var email = "bernard@nzpetrolrefunds.co.nz"; 
+    //var email = ("bernard@nzpetrolrefunds.co.nz, "+ClientsEmail[j]);******************************************** CORRECT FOR DIRECT TO CLIENT EMAILING
     //var email = ("barleybender@gmail.com, "+ClientsEmail[j]);//************************************************************** FOR TRIAL CODE ONLY
     
     
@@ -331,9 +332,17 @@ function emailRemittanceAdvice() {
 
   }
 
-  inboxSheet.getRange(2, 1, inboxSheet.getLastRow(), inboxSheet.getLastColumn()).clear();    //clears the sheet
+  //inboxSheet.getRange(2, 1, inboxSheet.getLastRow(), inboxSheet.getLastColumn()).clear();    //clears the sheet
   //Browser.msgBox('Done', 'The Invoice pdfs for each client have been created and sent.', Browser.Buttons.OK);
   Browser.msgBox('Done', 'The Invoice pdfs for each client have been created and sent; and the Inbox_Sheet cleared', Browser.Buttons.OK);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+function clearInboxSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var inboxSheet = ss.getSheetByName("Inbox_Sheet");
+    
+  inboxSheet.getRange(2, 1, inboxSheet.getLastRow(), inboxSheet.getLastColumn()).clear();    //clears the sheet
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
