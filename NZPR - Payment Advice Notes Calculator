@@ -7,7 +7,7 @@ function sortList(){
   var data = firstSheet.getDataRange().getValues();
   var ListOfFEDNumbers = secondSheet.getDataRange().getValues();
   
-  var range = firstSheet.getRange("A2:P1000");
+  var range = firstSheet.getRange("A2:Q1000");
   range.sort([{column: 1, ascending: true}, {column: 4, ascending: true}]);
   Browser.msgBox('Sort', 'List sorted (by client FED No. then Reference No.)', Browser.Buttons.OK);
 }
@@ -179,6 +179,7 @@ function emailRemittanceAdvice() {
   
   var ClientsName = [];
   var ClientsEmail = [];
+  var ClientsFirstName = [];
   
   var BtotalCredit = new Array(numberOfFEDNumbers);
   var Ffee = new Array(numberOfFEDNumbers);
@@ -222,6 +223,7 @@ function emailRemittanceAdvice() {
         ClientsName[j] = data[i][6];
         ClientsEmail[j] = data[i][12];
         ClientsFee[j] += data[i][5];
+        ClientsFirstName[j] += data[i][16];
         
         KclientRefund[j] = BtotalCredit[j]*(1-NZPRcommisionRate)-ClientsFee[j];
         KclientRefund[j] = KclientRefund[j].toFixed(2);
@@ -249,11 +251,11 @@ function emailRemittanceAdvice() {
     // Email Body can  be HTML too with your logo image - see ctrlq.org/html-mail
     //var body = ClientsName[j] +" Invoice(s) " + date.toString();
     if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent 
-      body = "Hi "+ClientsName[j]+", \r\rGood news!\r\rWe've received your petrol refund from the NZTA and will be loading that up for payment into your bank account tonight. Your refund came to $"+KclientRefund[j]+".\r\rAttached to this email is a payment advice summary and our invoices. Please note that our fees have been removed already so there is no need to take any action on these.\r\rMoving forward we will be putting a claim in on your behalf at the end of each financial quarter.\r\rPlease let me know if you have any questions.\r\rKind regards,\r\rBernard Coogan\rDirector\r\rNZ Petrol Refunds Limited\rnzpetrolrefunds.co.nz\r021 2066 719";
+      body = "Hi "+ClientsFirstName[j]+", \r\rGood news!\r\rWe've received your petrol refund from the NZTA and will be loading that up for payment into your bank account tonight. Your refund came to $"+KclientRefund[j]+".\r\rAttached to this email is a payment advice summary and our invoices. Please note that our fees have been removed already so there is no need to take any action on these.\r\rMoving forward we will be putting a claim in on your behalf at the end of each financial quarter.\r\rPlease let me know if you have any questions.\r\rKind regards,\r\rBernard Coogan\r\rDirector\r\rNZ Petrol Refunds Limited\r\rnzpetrolrefunds.co.nz\r\r021 2066 719";
       
           
     } else {
-      body = "Hi "+ClientsName[j]+", \r\rWe have received your latest refund from the NZTA and will be loading that up for payment into your account tonight.\r\rYour refund came to $"+KclientRefund[j]+".\r\rPlease see attached payment notice and invoice.\r\rKind regards,\r\rBernard Coogan\rDirector\r\rNZ Petrol Refunds Limited\rnzpetrolrefunds.co.nz\r021 2066 719"
+      body = "Hi "+ClientsFirstName[j]+", \r\rWe have received your latest refund from the NZTA and will be loading that up for payment into your account tonight.\r\rYour refund came to $"+KclientRefund[j]+".\r\rPlease see attached payment notice and invoice.\r\rKind regards,\r\rBernard Coogan\r\rDirector\r\rNZ Petrol Refunds Limited\r\rnzpetrolrefunds.co.nz\r\r021 2066 719"
     }
     
         
@@ -360,7 +362,7 @@ function emailRemittanceAdvice() {
 
   //inboxSheet.getRange(2, 1, inboxSheet.getLastRow(), inboxSheet.getLastColumn()).clear();    //clears the sheet
   //Browser.msgBox('Done', 'The Invoice pdfs for each client have been created and sent.', Browser.Buttons.OK);
-  Browser.msgBox('Done', 'The Invoice pdfs for each client have been created and sent; and the Inbox_Sheet cleared', Browser.Buttons.OK);
+  Browser.msgBox('Done', 'The Invoice pdfs for each client have been created (and draft emails within 5 mins).', Browser.Buttons.OK);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
 function clearInboxSheet() {
