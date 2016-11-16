@@ -7,7 +7,7 @@ function sortList(){
   var data = firstSheet.getDataRange().getValues();
   var ListOfFEDNumbers = secondSheet.getDataRange().getValues();
   
-  var range = firstSheet.getRange("A2:K100");
+  var range = firstSheet.getRange("A2:P1000");
   range.sort([{column: 1, ascending: true}, {column: 4, ascending: true}]);
   Browser.msgBox('Sort', 'List sorted (by client FED No. then Reference No.)', Browser.Buttons.OK);
 }
@@ -156,7 +156,7 @@ function feeChecks() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function emailRemittanceAdvice() {
-
+  var NZPRcommisionRate = 0.15;        //this is where the NZPR commision is set
   var ListOfFEDNumbers = [];
 
   var ss = SpreadsheetApp.getActiveSpreadsheet(); //naming the spreadsheet and sheets
@@ -169,7 +169,7 @@ function emailRemittanceAdvice() {
   
   var numberOfFEDNumbers = inboxSheet.getRange(2, 15).getValues();
   
-  var data = inboxSheet.getDataRange().getValues(); //storing all the data on the page in an array for use in all calcs
+  var data = inboxSheet.getDataRange().getValues(); //storing all the data on the inbox_sheet in an array for use in all calcs
   var refundData; //as above but from the refund template; when populated
   for (n = 0; n < numberOfFEDNumbers; ++n) {
     ListOfFEDNumbers[n] = data[n + 1][13]; // 13 is the index of the column (starting from 0)
@@ -179,6 +179,17 @@ function emailRemittanceAdvice() {
   
   var ClientsName = [];
   var ClientsEmail = [];
+  
+  var BtotalCredit = new Array(numberOfFEDNumbers);
+  var Ffee = new Array(numberOfFEDNumbers);
+      
+  for (var i = 0; i < numberOfFEDNumbers; i++) {
+    BtotalCredit[i] = 0;
+    Ffee[i] = 0;
+  }
+  var KclientRefund = [];
+  
+
 
   var ClientsFee = new Array(numberOfFEDNumbers); //creates the array ClientsFee, with a length of numberOfFEDNumbers
   for (var i = 0; i < numberOfFEDNumbers; i++) {  //fills the array ClientsFee with 0s
@@ -190,6 +201,8 @@ function emailRemittanceAdvice() {
     
     for (var i = 1; i < data.length; i++) { //loop for each line in the spreadsheet
       if (data[i][0] == targetFED) { //ensures the data stored in each of the following arrays is for each unique FED number
+        
+        BtotalCredit[j] = +BtotalCredit[j] + +data[i][1];
         
         dataSheet.appendRow([data[i][0],//writes data from the correct FED number only to the data_sheet
                              data[i][1],
@@ -210,6 +223,9 @@ function emailRemittanceAdvice() {
         ClientsEmail[j] = data[i][12];
         ClientsFee[j] += data[i][5];
         
+        KclientRefund[j] = BtotalCredit[j]*(1-NZPRcommisionRate)-ClientsFee[j];
+        KclientRefund[j] = KclientRefund[j].toFixed(2);
+        
       }
 
     }
@@ -224,16 +240,23 @@ function emailRemittanceAdvice() {
     
     // Send the PDF of the spreadsheet to this email address
     var email = "bernard@nzpetrolrefunds.co.nz"; 
-    //var email = ("bernard@nzpetrolrefunds.co.nz, "+ClientsEmail[j]);******************************************** CORRECT FOR DIRECT TO CLIENT EMAILING
-    //var email = ("barleybender@gmail.com, "+ClientsEmail[j]);//************************************************************** FOR TRIAL CODE ONLY
     
     
     // Subject of email message
-    var subject = ClientsName[j] +" Invoice(s) " + date.toString();
-    
+    //var subject = ClientsName[j] +" Invoice(s) " + date.toString();
+    var subject = ClientsEmail[j];
+    var body;
     // Email Body can  be HTML too with your logo image - see ctrlq.org/html-mail
-    var body = ClientsName[j] +" Invoice(s) " + date.toString();
+    //var body = ClientsName[j] +" Invoice(s) " + date.toString();
+    if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent 
+      body = "Hi "+ClientsName[j]+", \r\rGood news!\r\rWe've received your petrol refund from the NZTA and will be loading that up for payment into your bank account tonight. Your refund came to $"+KclientRefund[j]+".\r\rAttached to this email is a payment advice summary and our invoices. Please note that our fees have been removed already so there is no need to take any action on these.\r\rMoving forward we will be putting a claim in on your behalf at the end of each financial quarter.\r\rPlease let me know if you have any questions.\r\rKind regards,\r\rBernard Coogan\rDirector\r\rNZ Petrol Refunds Limited\rnzpetrolrefunds.co.nz\r021 2066 719";
+      
+          
+    } else {
+      body = "Hi "+ClientsName[j]+", \r\rWe have received your latest refund from the NZTA and will be loading that up for payment into your account tonight.\r\rYour refund came to $"+KclientRefund[j]+".\r\rPlease see attached payment notice and invoice.\r\rKind regards,\r\rBernard Coogan\rDirector\r\rNZ Petrol Refunds Limited\rnzpetrolrefunds.co.nz\r021 2066 719"
+    }
     
+        
     var url = ss.getUrl();
     url = url.replace(/edit$/, '');
 
@@ -267,7 +290,7 @@ function emailRemittanceAdvice() {
     ///////////////////////////////////////////////////////////////
     if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent
     
-      for (var i = 6; i < 9; i++) {//selecting sheets 6-9 to turn into pdf and email
+      for (var i = 6; i < 7; i++) {//selecting sheet 6 to turn into pdf and email
 
         // Convert individual worksheets to PDF
         var response = cUseful.Utils.expBackoff(
@@ -292,12 +315,12 @@ function emailRemittanceAdvice() {
       }
       if (MailApp.getRemainingDailyQuota() > 0)
             GmailApp.sendEmail(email, subject, body, {
-        attachments: [blobs[6].getAs(MimeType.PDF),blobs[7].getAs(MimeType.PDF),blobs[8].getAs(MimeType.PDF)],
+        attachments: [blobs[6].getAs(MimeType.PDF)],
         name: 'NZ Petrol Refunds'
       });
     }
     else {
-      for (var i = 6; i < 8; i++) {//selecting sheets 6-9 to turn into pdf and email
+      for (var i = 7; i < 8; i++) {//selecting sheets 7 to turn into pdf and email
         
         // Convert individual worksheets to PDF
         var response = cUseful.Utils.expBackoff(
@@ -319,9 +342,12 @@ function emailRemittanceAdvice() {
         //blobs[i] = response.getBlob().setName('Invoice ' + date.toString() + '.pdf');
         blobs[i] = response.getBlob().setName(sheets[i].getName() + '.pdf');
       }
+      
+
+      
       if (MailApp.getRemainingDailyQuota() > 0)
         GmailApp.sendEmail(email, subject, body, {
-          attachments: [blobs[6].getAs(MimeType.PDF),blobs[7].getAs(MimeType.PDF)],
+          attachments: [blobs[7].getAs(MimeType.PDF)],
           name: 'NZ Petrol Refunds'
         });
       
@@ -485,3 +511,4 @@ function sendToXero() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
