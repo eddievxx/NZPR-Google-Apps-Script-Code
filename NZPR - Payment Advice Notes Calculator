@@ -223,7 +223,7 @@ function emailRemittanceAdvice() {
         ClientsName[j] = data[i][6];
         ClientsEmail[j] = data[i][12];
         ClientsFee[j] += data[i][5];
-        ClientsFirstName[j] += data[i][16];
+        ClientsFirstName[j] = data[i][16];
         
         KclientRefund[j] = BtotalCredit[j]*(1-NZPRcommisionRate)-ClientsFee[j];
         KclientRefund[j] = KclientRefund[j].toFixed(2);
