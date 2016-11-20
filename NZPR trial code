@@ -7,7 +7,7 @@ function sortList(){
   var data = firstSheet.getDataRange().getValues();
   var ListOfFEDNumbers = secondSheet.getDataRange().getValues();
   
-  var range = firstSheet.getRange("A2:P1000");
+  var range = firstSheet.getRange("A2:Q1000");
   range.sort([{column: 1, ascending: true}, {column: 4, ascending: true}]);
   Browser.msgBox('Sort', 'List sorted (by client FED No. then Reference No.)', Browser.Buttons.OK);
 }
@@ -179,6 +179,7 @@ function emailRemittanceAdvice() {
   
   var ClientsName = [];
   var ClientsEmail = [];
+  var ClientsFirstName = [];
   
   var BtotalCredit = new Array(numberOfFEDNumbers);
   var Ffee = new Array(numberOfFEDNumbers);
@@ -222,6 +223,7 @@ function emailRemittanceAdvice() {
         ClientsName[j] = data[i][6];
         ClientsEmail[j] = data[i][12];
         ClientsFee[j] += data[i][5];
+        ClientsFirstName[j] = data[i][16];
         
         KclientRefund[j] = BtotalCredit[j]*(1-NZPRcommisionRate)-ClientsFee[j];
         KclientRefund[j] = KclientRefund[j].toFixed(2);
@@ -240,8 +242,8 @@ function emailRemittanceAdvice() {
     
     // Send the PDF of the spreadsheet to this email address
     //var email = "bernard@nzpetrolrefunds.co.nz"; 
-    var email = "nathanjeffreyyoung@gmail.com";
-    
+    //var email = "nathanjeffreyyoung@gmail.com";
+    var email = "barleybender@gmail.com";
     
     // Subject of email message
     //var subject = ClientsName[j] +" Invoice(s) " + date.toString();
@@ -250,14 +252,15 @@ function emailRemittanceAdvice() {
     // Email Body can  be HTML too with your logo image - see ctrlq.org/html-mail
     //var body = ClientsName[j] +" Invoice(s) " + date.toString();
     if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent 
-      body = "Hi "+ClientsName[j]+", \r\rGood news!\r\rWe've received your petrol refund from the NZTA and will be loading that up for payment into your bank account tonight. Your refund came to $"+KclientRefund[j]+".\r\rAttached to this email is a payment advice summary and our invoices. Please note that our fees have been removed already so there is no need to take any action on these.\r\rMoving forward we will be putting a claim in on your behalf at the end of each financial quarter.\r\rPlease let me know if you have any questions.\r\rKind regards,\r\rBernard Coogan\rDirector\r\rNZ Petrol Refunds Limited\rnzpetrolrefunds.co.nz\r021 2066 719";
-      
+      body = "Hi "+ClientsFirstName[j]+", <br><br><b>Good news!</b><br> <img src='https://cdn.pixabay.com/photo/2016/11/10/09/32/cathedral-1813826_960_720.jpg' alt='NZPR'><br>We've received your petrol refund from the NZTA and will be loading that up for payment into your bank account tonight. Your refund came to $"+KclientRefund[j]+".<br><br>Attached to this email is a payment advice summary and our invoices. Please note that our fees have been removed already so there is no need to take any action on these.<br><br>Moving forward we will be putting a claim in on your behalf at the end of each financial quarter.<br><br>Please let me know if you have any questions.<br><br>Kind regards,<br><br>Bernard Coogan<br><br>Director<br><br>NZ Petrol Refunds Limited<br><br>nzpetrolrefunds.co.nz<br><br>021 2066 719";
+      //https://www.dropbox.com/s/l6onq9kujxl232s/logo-NZPetrolRefunds-RGB-300px.jpg?dl=0
           
     } else {
-      body = "Hi "+ClientsName[j]+", \r\rWe have received your latest refund from the NZTA and will be loading that up for payment into your account tonight.\r\rYour refund came to $"+KclientRefund[j]+".\r\rPlease see attached payment notice and invoice.\r\rKind regards,\r\rBernard Coogan\rDirector\r\rNZ Petrol Refunds Limited\rnzpetrolrefunds.co.nz\r021 2066 719"
+      body = "Hi "+ClientsFirstName[j]+", <br><br>We have received your latest refund from the NZTA and will be loading that up for payment into your account tonight.<br><br>Your refund came to $"+KclientRefund[j]+".<br><br>Please see attached payment notice and invoice.<br><br>Kind regards,<br><br>Bernard Coogan<br><br>Director<br><br>NZ Petrol Refunds Limited<br><br>nzpetrolrefunds.co.nz<br><br>021 2066 719"
     }
     
         
+    //var url = "https://docs.google.com/spreadsheets/d/SS_ID/export?".replace("SS_ID", ss.getId());
     var url = ss.getUrl();
     url = url.replace(/edit$/, '');
 
@@ -314,11 +317,12 @@ function emailRemittanceAdvice() {
         blobs[i] = response.getBlob().setName(sheets[i].getName() + '.pdf');
         
       }
-      if (MailApp.getRemainingDailyQuota() > 0)
-            GmailApp.sendEmail(email, subject, body, {
-        attachments: [blobs[6].getAs(MimeType.PDF)],
-        name: 'NZ Petrol Refunds'
-      });
+      //if (MailApp.getRemainingDailyQuota() > 0)
+        GmailApp.sendEmail(email, subject, body, {
+          htmlBody: body,
+          attachments: [blobs[6].getAs(MimeType.PDF)],
+          name: 'NZ Petrol Refunds'
+        });
     }
     else {
       for (var i = 7; i < 8; i++) {//selecting sheets 7 to turn into pdf and email
@@ -346,8 +350,9 @@ function emailRemittanceAdvice() {
       
 
       
-      if (MailApp.getRemainingDailyQuota() > 0)
+      //if (MailApp.getRemainingDailyQuota() > 0)
         GmailApp.sendEmail(email, subject, body, {
+          htmlBody: body,
           attachments: [blobs[7].getAs(MimeType.PDF)],
           name: 'NZ Petrol Refunds'
         });
@@ -361,7 +366,7 @@ function emailRemittanceAdvice() {
 
   //inboxSheet.getRange(2, 1, inboxSheet.getLastRow(), inboxSheet.getLastColumn()).clear();    //clears the sheet
   //Browser.msgBox('Done', 'The Invoice pdfs for each client have been created and sent.', Browser.Buttons.OK);
-  Browser.msgBox('Done', 'The Invoice pdfs for each client have been created and sent; and the Inbox_Sheet cleared', Browser.Buttons.OK);
+  Browser.msgBox('Done', 'The Invoice pdfs for each client have been created (and draft emails within 5 mins).', Browser.Buttons.OK);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
 function clearInboxSheet() {
@@ -512,37 +517,481 @@ function sendToXero() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
- //this works but i am not actually using this method as i can't see how to attach files
-  function createDraft() {
+ function SIMPLEemailRemittanceAdvice() {
+//  var NZPRcommisionRate = 0.15;        //this is where the NZPR commision is set
+ // var ListOfFEDNumbers = [];
 
-  var emailBody1 = "Hi, client. First payment";
-  var emailBody2 = "Hi, client. Usual payment";
-   
-  var forScope = GmailApp.getInboxUnreadCount(); // needed for auth scope
+  var ss = SpreadsheetApp.getActiveSpreadsheet(); //naming the spreadsheet and sheets
+  var inboxSheet = ss.getSheetByName("Inbox_Sheet");
+  var dataSheet = ss.getSheetByName("Data_Sheet");
+  var templateSheet = ss.getSheetByName("Commision_Invoice");
+/*
+  inboxSheet.getRange("N2").setFormula("=UNIQUE(A2:A)");
+  inboxSheet.getRange("O2").setFormula("=COUNTA(N2:N)");
+  
+  var numberOfFEDNumbers = inboxSheet.getRange(2, 15).getValues();
+  
+  var data = inboxSheet.getDataRange().getValues(); //storing all the data on the inbox_sheet in an array for use in all calcs
+  var refundData; //as above but from the refund template; when populated
+  for (n = 0; n < numberOfFEDNumbers; ++n) {
+    ListOfFEDNumbers[n] = data[n + 1][13]; // 13 is the index of the column (starting from 0)
+  }
+  
+  var targetFED; // = ListOfFEDNumbers[1][0];
+  
+  var ClientsName = [];
+  var ClientsEmail = [];
+  var ClientsFirstName = [];
+  
+  var BtotalCredit = new Array(numberOfFEDNumbers);
+  var Ffee = new Array(numberOfFEDNumbers);
+      
+  for (var i = 0; i < numberOfFEDNumbers; i++) {
+    BtotalCredit[i] = 0;
+    Ffee[i] = 0;
+  }
+  var KclientRefund = [];
+  
 
-  var raw = 
-      'Subject: testing Draft\n' + 
-      'To: nathanjeffreyyoung@gmail.com\n' +
-      'Content-Type: multipart/alternative; boundary=1234567890123456789012345678\n' +
-      emailBody1+ '\n' + 
-      '--1234567890123456789012345678--\n';
 
-  var draftBody = Utilities.base64Encode(raw);
+  var ClientsFee = new Array(numberOfFEDNumbers); //creates the array ClientsFee, with a length of numberOfFEDNumbers
+  for (var i = 0; i < numberOfFEDNumbers; i++) {  //fills the array ClientsFee with 0s
+    ClientsFee[i] = 0;
+  }
+  
+  for (var j = 0; j < numberOfFEDNumbers; j++) { //loop for each unique FED Number to store the caluclated values
+    targetFED = ListOfFEDNumbers[j];
+    
+    for (var i = 1; i < data.length; i++) { //loop for each line in the spreadsheet
+      if (data[i][0] == targetFED) { //ensures the data stored in each of the following arrays is for each unique FED number
+        
+        BtotalCredit[j] = +BtotalCredit[j] + +data[i][1];
+        
+        dataSheet.appendRow([data[i][0],//writes data from the correct FED number only to the data_sheet
+                             data[i][1],
+                             data[i][2],
+                             data[i][3],
+                             data[i][4],
+                             data[i][5],
+                             data[i][6],
+                             data[i][7],
+                             data[i][8],
+                             data[i][9],
+                             data[i][10],
+                             data[i][11],
+                             data[i][12],
+                             data[i][15] 
+                            ]);
+        ClientsName[j] = data[i][6];
+        ClientsEmail[j] = data[i][12];
+        ClientsFee[j] += data[i][5];
+        ClientsFirstName[j] = data[i][16];
+        
+        KclientRefund[j] = BtotalCredit[j]*(1-NZPRcommisionRate)-ClientsFee[j];
+        KclientRefund[j] = KclientRefund[j].toFixed(2);
+        
+      }
 
-  var params = {method:"post",
-                contentType: "application/json",
-                headers: {"Authorization": "Bearer " + ScriptApp.getOAuthToken()},
-                muteHttpExceptions:true,
-                payload:JSON.stringify({
-                  "message": {
-                    "raw": draftBody
-                  }
-                })
-               };
+    }
+    Logger.log(ClientsName[j]);
+    Logger.log(ClientsEmail[j]);
+    Logger.log(ClientsFee[j]);
+    
+    clearDataSheet();
+*/    
+    //PDF CONVERSION AND EMAIL SECTION OF CODE///////////////////////////////////////////                                                        
+    var date = Utilities.formatDate(new Date(), "GMT+12", "dd-MM-yyyy'T'HH:mm:ss'Z'");
+    
+    // Send the PDF of the spreadsheet to this email address
+    //var email = "bernard@nzpetrolrefunds.co.nz"; 
+    var email = "nathanjeffreyyoung@gmail.com";
+    //var email = "njy@tuta.io";
+    
+    // Subject of email message
+    //var subject = ClientsName[j] +" Invoice(s) " + date.toString();
+   // var subject = ClientsEmail[j];
+   var subject = "test";
+    var body = "TEST";
+    // Email Body can  be HTML too with your logo image - see ctrlq.org/html-mail
+    
+   /*
+   //var body = ClientsName[j] +" Invoice(s) " + date.toString();
+    if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent 
+      body = "Hi "+ClientsFirstName[j]+", <br><br><b>Good news!</b><br> <img src='https://cdn.pixabay.com/photo/2016/11/10/09/32/cathedral-1813826_960_720.jpg' alt='NZPR'><br>We've received your petrol refund from the NZTA and will be loading that up for payment into your bank account tonight. Your refund came to $"+KclientRefund[j]+".<br><br>Attached to this email is a payment advice summary and our invoices. Please note that our fees have been removed already so there is no need to take any action on these.<br><br>Moving forward we will be putting a claim in on your behalf at the end of each financial quarter.<br><br>Please let me know if you have any questions.<br><br>Kind regards,<br><br>Bernard Coogan<br><br>Director<br><br>NZ Petrol Refunds Limited<br><br>nzpetrolrefunds.co.nz<br><br>021 2066 719";
+      //https://www.dropbox.com/s/l6onq9kujxl232s/logo-NZPetrolRefunds-RGB-300px.jpg?dl=0
+          
+    } else {
+      body = "Hi "+ClientsFirstName[j]+", <br><br>We have received your latest refund from the NZTA and will be loading that up for payment into your account tonight.<br><br>Your refund came to $"+KclientRefund[j]+".<br><br>Please see attached payment notice and invoice.<br><br>Kind regards,<br><br>Bernard Coogan<br><br>Director<br><br>NZ Petrol Refunds Limited<br><br>nzpetrolrefunds.co.nz<br><br>021 2066 719"
+    }
+    
+  */      
+    //var url = "https://docs.google.com/spreadsheets/d/SS_ID/export?".replace("SS_ID", ss.getId());
+    var url = ss.getUrl();
+    url = url.replace(/edit$/, '');
 
-  var resp = UrlFetchApp.fetch("https://www.googleapis.com/gmail/v1/users/me/drafts", params);
+    /* Specify PDF export parameters
+    // From: https://code.google.com/p/google-apps-script-issues/issues/detail?id=3579
+    exportFormat = pdf / csv / xls / xlsx
+    gridlines = true / false
+    printtitle = true (1) / false (0)
+    size = legal / letter/ A4
+    fzr (repeat frozen rows) = true / false
+    portrait = true (1) / false (0)
+    fitw (fit to page width) = true (1) / false (0)
+    add gid if to export a particular sheet - 0, 1, 2,..
+    */
 
-  Logger.log(resp.getContentText());
+    var url_ext = 'export?exportFormat=pdf&format=pdf' // export as pdf / csv / xls / xlsx
+      + '&size=letter' // paper size
+      + '&portrait=true' // orientation, false for landscape
+      + '&fitw=true&source=labnol' // fit to width, false for actual size
+      + '&sheetnames=false&printtitle=false' // hide optional headers and footers
+      + '&pagenumbers=false&gridlines=false' // hide page numbers and gridlines
+      + '&fzr=false' // do not repeat row headers (frozen rows) on each page
+      + '&gid='; // the sheet's Id
+
+    var token = ScriptApp.getOAuthToken();
+    var sheets = ss.getSheets();
+
+    //make an empty array to hold your fetched blobs  
+    var blobs = [];
+
+    ///////////////////////////////////////////////////////////////
+    //if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent
+    
+      for (var i = 6; i < 7; i++) {//selecting sheet 6 to turn into pdf and email
+
+        // Convert individual worksheets to PDF
+        var response = cUseful.Utils.expBackoff(
+          function() {
+            return UrlFetchApp.fetch(url + url_ext + sheets[i].getSheetId(), {
+              headers: {
+                'Authorization': 'Bearer ' + token
+              },
+                muteHttpExceptions: true,
+            });
+          }, {
+            logAttempts: true,
+            lookahead: function(r) {
+              return r.getResponseCode() === 429;
+            }
+          });
+
+        //convert the response to a blob and store in our array
+        //blobs[i] = response.getBlob().setName('Invoice ' + date.toString() + '.pdf');
+        blobs[i] = response.getBlob().setName(sheets[i].getName() + '.pdf');
+        
+      }
+   if (MailApp.getRemainingDailyQuota() > 0)
+     GmailApp.sendEmail(email, subject, body, {
+       htmlBody: body,
+       attachments: [blobs[6].getAs(MimeType.PDF)],
+       name: 'NZ Petrol Refunds'
+     });
  }
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /*
+  else {
+  for (var i = 7; i < 8; i++) {//selecting sheets 7 to turn into pdf and email
+  
+  // Convert individual worksheets to PDF
+  var response = cUseful.Utils.expBackoff(
+  function() {
+  return UrlFetchApp.fetch(url + url_ext + sheets[i].getSheetId(), {
+                headers: {
+                'Authorization': 'Bearer ' + token
+                },
+                  muteHttpExceptions: true,
+            });
+          }, {
+            logAttempts: true,
+            lookahead: function(r) {
+              return r.getResponseCode() === 429;
+            }
+          });
+        
+        //convert the response to a blob and store in our array
+        //blobs[i] = response.getBlob().setName('Invoice ' + date.toString() + '.pdf');
+        blobs[i] = response.getBlob().setName(sheets[i].getName() + '.pdf');
+      }
+      
+
+      
+      if (MailApp.getRemainingDailyQuota() > 0)
+        GmailApp.sendEmail(email, subject, body, {
+          htmlBody: body,
+          attachments: [blobs[7].getAs(MimeType.PDF)],
+          name: 'NZ Petrol Refunds'
+        });
+      
+    }
+*/   
+    //END OF PDF AND EMAIL SECTION OF CODE/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////      
+
+
+//  }
+
+  //inboxSheet.getRange(2, 1, inboxSheet.getLastRow(), inboxSheet.getLastColumn()).clear();    //clears the sheet
+  //Browser.msgBox('Done', 'The Invoice pdfs for each client have been created and sent.', Browser.Buttons.OK);
+//  Browser.msgBox('Done', 'The Invoice pdfs for each client have been created (and draft emails within 5 mins).', Browser.Buttons.OK);
+//}
+  
+  /*
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+PDF Create - with rename and email
+==================================
+When you click "Create PDF>Create PDF" this script uses the data from 
+the active row to construct a PDF in your GDrive. The value in the 
+"File Name" column is used to name the file and - if there is a 
+value - it is emailed to the recipient in the "Email" column.
+*/
+
+// Config
+// ------
+
+  // 1. Create a GDoc template and put the ID here
+  var TEMPLATE_ID = '1YEMRORK-0adEWKzvE6bAYCVNPIWw81LWcHdenOhUS9Q'
+  
+  //var TEMPLATE_ID = '1wtGEp27HNEVwImeh2as7bRNw-tO4HkwPGcAsTrSNTPc' // Demo template
+  // Demo script - http://bit.ly/createPDF
+
+// 2. You can specify a name for the new PDF file here, or leave empty to use the 
+// name of the template or specify the file name in the sheet
+var PDF_FILE_NAME = ''
+
+// 3. If an email address is specified you can email the PDF
+var EMAIL_SUBJECT = 'The email subject ---- UPDATE ME -----'
+var EMAIL_BODY = 'The email body ------ UPDATE ME ---------'
+
+// Constants
+// ---------
+
+// You can pull out specific columns values 
+var FILE_NAME_COLUMN_NAME = 'File Name'
+var EMAIL_COLUMN_NAME = 'Email'
+
+/**
+ * Eventhandler for spreadsheet opening - add a menu.
+ */
+
+function onOpen() {
+
+  SpreadsheetApp
+    .getUi()
+    .createMenu('Create PDF')
+    .addItem('Create PDF', 'createPdf')
+    .addToUi()
+
+} // onOpen()
+
+/**  
+ * Take the fields from the active row in the active sheet
+ * and, using a Google Doc template, create a PDF doc with these
+ * fields replacing the keys in the template. The keys are identified
+ * by having a % either side, e.g. %Name%.
+ *
+ * @return {Object} the completed PDF file
+ */
+
+function createPdf() {
+
+  var ui = SpreadsheetApp.getUi()
+
+  if (TEMPLATE_ID === '') {
+    
+    ui.alert('TEMPLATE_ID needs to be defined in code.gs')
+    return
+  }
+
+  // Set up the docs and the spreadsheet access
+  
+  var copyFile = DriveApp.getFileById(TEMPLATE_ID).makeCopy(),
+      copyId = copyFile.getId(),
+      copyDoc = DocumentApp.openById(copyId),
+      copyBody = copyDoc.getActiveSection(),
+      activeSheet = SpreadsheetApp.getActiveSheet(),//////////////////////////////////////nathan/modify this to get a specfic shett
+      numberOfColumns = activeSheet.getLastColumn(),
+      activeRowIndex = activeSheet.getActiveRange().getRowIndex(),
+      activeRow = activeSheet.getRange(activeRowIndex, 1, 1, numberOfColumns).getValues(),
+      headerRow = activeSheet.getRange(1, 1, 1, numberOfColumns).getValues(),
+      columnIndex = 0,
+      headerValue,
+      activeCell,
+      ID = null,
+      recipient = "nathanjeffreyyoung@gmail.com"
+      //recipient = null
  
+  // Replace the keys with the spreadsheet values and look for a couple
+  // of specific values
+ 
+  /*
+  for (;columnIndex < headerRow[0].length; columnIndex++) {
+    
+    headerValue = headerRow[0][columnIndex]
+    activeCell = activeRow[0][columnIndex]
+    
+    copyBody.replaceText('%' + headerValue + '%', activeCell)
+    
+    if (headerValue === FILE_NAME_COLUMN_NAME) {
+    
+      ID = activeCell
+      
+    } else if (headerValue === EMAIL_COLUMN_NAME) {
+    
+      recipient = activeCell
+    }
+  }
+  */
+  // Create the PDF file, rename it if required, delete the doc copy
+  // and email it
+    
+  copyDoc.saveAndClose()
+
+  var newFile = DriveApp.createFile(copyFile.getAs('application/pdf'))  
+
+  if (PDF_FILE_NAME !== '') {
+  
+    newFile.setName(PDF_FILE_NAME)
+    
+  } else if (ID !== null){
+
+    newFile.setName(ID)
+  }
+  
+  copyFile.setTrashed(true)
+  
+  if (recipient !== null) {
+  
+    MailApp.sendEmail(
+      recipient, 
+      EMAIL_SUBJECT, 
+      EMAIL_BODY,
+      {attachments: [newFile]})
+  }
+  
+  ui.alert('New PDF file created in the root of your Google Drive ' + 
+        'and emailed to ' + recipient)
+  
+} // createPdf()
+  
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  function hybridPDFstage1(){//this allows the Google Doc to be pdfed and sent
+    
+    var ui = SpreadsheetApp.getUi();
+    
+    var TEMPLATE_ID = '1cgret8YERYDXs8AFqGsHhDqp1E4q_A82-Mcq5OQ0KZ8'
+    var PDF_FILE_NAME = 'pdf file name'
+    var EMAIL_SUBJECT = 'The email subject ---- UPDATE ME -----'
+    var EMAIL_BODY = 'The email body ------ UPDATE ME ---------'
+    
+    
+    var copyFile = DriveApp.getFileById(TEMPLATE_ID).makeCopy(),
+        copyId = copyFile.getId(),
+        copyDoc = DocumentApp.openById(copyId),
+        recipient = "nathanjeffreyyoung@gmail.com";
+    
+    // Create the PDF file, rename it if required, delete the doc copy
+    // and email it
+    
+    copyDoc.saveAndClose()
+    
+    var newFile = DriveApp.createFile(copyFile.getAs('application/pdf'))
+
+    
+    newFile.setName(PDF_FILE_NAME)
+    copyFile.setTrashed(true)
+    
+    if (recipient !== null) {
+      
+      MailApp.sendEmail(
+        recipient, 
+        EMAIL_SUBJECT, 
+        EMAIL_BODY,
+        {attachments: [newFile]})
+    }
+    
+    ui.alert('New PDF file created in the root of your Google Drive ' + 
+             'and emailed to ' + recipient)
+    
+  }
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  function hybridPDFstage2(){//this [should] allow the Google S/S Sheet to be pdfed and sent
+    
+    var ui = SpreadsheetApp.getUi();
+    
+    var TEMPLATE_ID = '1cgret8YERYDXs8AFqGsHhDqp1E4q_A82-Mcq5OQ0KZ8'
+    var PDF_FILE_NAME = 'pdf file name'
+    var EMAIL_SUBJECT = 'The email subject ---- UPDATE ME -----'
+    var EMAIL_BODY = 'The email body ------ UPDATE ME ---------'
+    
+    
+    var copyFile = DriveApp.getFileById(TEMPLATE_ID).makeCopy(),
+        copyId = copyFile.getId(),
+        copyDoc = DocumentApp.openById(copyId),
+        recipient = "nathanjeffreyyoung@gmail.com";
+    
+    // Create the PDF file, rename it if required, delete the doc copy
+    // and email it
+    
+    copyDoc.saveAndClose()
+    
+    var newFile = DriveApp.createFile(copyFile.getAs('application/pdf'))
+
+    
+    newFile.setName(PDF_FILE_NAME)
+    copyFile.setTrashed(true)
+    
+    if (recipient !== null) {
+      
+      MailApp.sendEmail(
+        recipient, 
+        EMAIL_SUBJECT, 
+        EMAIL_BODY,
+        {attachments: [newFile]})
+    }
+    
+    ui.alert('New PDF file created in the root of your Google Drive ' + 
+             'and emailed to ' + recipient)
+    
+  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Simple function to send Weekly Status Sheets to email
+
+// Load a menu item called "NZPR Invoices" with a submenu item called "Email pdfs"
+// Running this, sends the currently open sheet, as a PDF attachment
+function onOpen() {
+  var submenu = [{name:"Email pdfs", functionName:"nathansEmailPdfCode"}];
+  SpreadsheetApp.getActiveSpreadsheet().addMenu('NZPR Invoices', submenu);  
+}
+
+function nathansEmailPdfCode() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();   //naming the spreadsheet and sheets
+  var C_F_R = ss.getSheetByName("Commision_Fee_Refund");
+  var C_R = ss.getSheetByName("Commision_Refund");
+  
+  var body = "email body";
+  var subject = "email subject"
+  var emailTo = "nathanjeffreyyoung@gmail.com";
+  
+  // Create a new Spreadsheet and copy the current sheet into it.
+  var newSpreadsheet = SpreadsheetApp.create("Spreadsheet to export");
+  //var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  //var sheet = SpreadsheetApp.getActiveSpreadsheet();
+  var projectname = SpreadsheetApp.getActiveSpreadsheet();
+  //sheet = ss.getActiveSheet();
+  C_F_R.copyTo(newSpreadsheet);
+  
+  // Find and delete the default "Sheet 1", after the copy to avoid triggering an apocalypse
+  newSpreadsheet.getSheetByName('Sheet1').activate();
+  newSpreadsheet.deleteActiveSheet();
+  
+  // Make zee PDF, currently called "pdf name.pdf"
+  var pdf = DriveApp.getFileById(newSpreadsheet.getId()).getAs('application/pdf').getBytes();
+  var attach = {fileName:'pdf name.pdf',content:pdf, mimeType:'application/pdf'};
+
+  // Send the freshly constructed email 
+  MailApp.sendEmail(emailTo, subject, body, {attachments:[attach]});
+  
+  // Delete the wasted sheet we created, so our Drive stays tidy.
+  DriveApp.getFileById(newSpreadsheet.getId()).setTrashed(true);  
+}
