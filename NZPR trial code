@@ -516,16 +516,98 @@ function sendToXero() {
     Browser.msgBox('Send to Xero', 'The payment information has been sent to Xero.', Browser.Buttons.OK);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  function onOpen() {
+    /*
+    var ss = SpreadsheetApp.getActiveSpreadsheet(),
+     options = [
+      {name:"Say Hi", functionName:"sayHello"},
+      {name:"Say Goodbye", functionName:"sayGoodbye"}
+     ];
+    ss.addMenu("Email", options);
+    */
+ 
+    
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    var inboxSheetMenu = [];
+    inboxSheetMenu = [
+      {name: "1. Sort", functionName: "sortList"},
+      {name: "3. Check", functionName: "feeChecks"}
+    ];
+    
+    
+    var newClientMenu = [];
+    newClientMenu = [
+      {name: "Menu Entry 1", functionName: "function1"},
+      {name: "Menu Entry 2", functionName: "function2"}
+    ];
+    
+    ss.addMenu("Inbox_Sheet functions", inboxSheetMenu);
+    ss.addMenu("New_Client functions", newClientMenu);
+    
 
+    
+  /*
+    var ui = SpreadsheetApp.getUi();
+    // Or DocumentApp or FormApp.
+    ui.createMenu('NZPR Calculator Functions')
+    .addItem('New Email Code', 'nathansEmailPdfCode')
+    .addSeparator()
+    .addSubMenu(ui.createMenu('Inbox_Sheet')
+                .addItem('1. Sort', 'sortList'));
+    .addItem('3. Check', 'feeChecks'))
+    .addItem('4. Send to Xero', 'sendToXero'))
+    .addItem('5. Email pdfs', 'emailRemittanceAdvice'))
+    .addItem('6. Clear sheet', 'clearInboxSheet'))
+    
+    .addSubMenu(ui.createMenu('New_Client Sheet')
+                .addItem('Second item', 'menuItem2'))
+    
+    .addToUi();
+  */
+  /*
+  function menuItem1() {
+    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
+    .alert('You clicked the first menu item!');
+  }
+  
+  function menuItem2() {
+    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
+    .alert('You clicked the second menu item!');
+    */
+    /*
+    var IBS = [{name:"1. Sort", functionName:"sortList"}];
+    var IBS = [{name:"3. Check", functionName:"feeChecks"}];
+    var IBS = [{name:"4. Send to Xero", functionName:"sendToXero"}];
+    var IBS = [{name:"5. Email pdfs", functionName:"emailRemittanceAdvice"}];
+    var IBS = [{name:"6. Clear sheet", functionName:"clearInboxSheet"}];
+    SpreadsheetApp.getActiveSpreadsheet().addMenu('Inbox_Sheet', IBS); 
+    //SpreadsheetApp.getActiveSpreadsheet().addMenu('Inbox_Sheet', check);
+    //SpreadsheetApp.getActiveSpreadsheet().addMenu('Inbox_Sheet', send);
+    //SpreadsheetApp.getActiveSpreadsheet().addMenu('Inbox_Sheet', email);
+    //SpreadsheetApp.getActiveSpreadsheet().addMenu('Inbox_Sheet', clear);
+        
+    var addBonus = [{name:"Add Bonus Line", functionName:"bonusLine"}];
+    var addFuelCont = [{name:"Add Fuel Contribution Line", functionName:"fuelContLine"}];
+    SpreadsheetApp.getActiveSpreadsheet().addMenu('New_Client Sheet', addBonus);
+    SpreadsheetApp.getActiveSpreadsheet().addMenu('New_Client Sheet', addFuelCont);
+    
+        //var newEmailCode = [{functionName:"nathansEmailPdfCode"}];
+    //SpreadsheetApp.getActiveSpreadsheet().addMenu('New Email Code', newEmailCode);
+       */     
+ 
+    
+  }
+  
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//this is the new, improved email code - it is not yet complete
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
   // Load a menu item called "NZPR Invoices" with a submenu item called "Email pdfs"
   // Running this, sends the currently open sheet, as a PDF attachment
-  function onOpen() {
-    var submenu = [{name:"Email pdfs", functionName:"nathansEmailPdfCode"}];
-    SpreadsheetApp.getActiveSpreadsheet().addMenu('NZPR Invoices', submenu);  
-  }
+  
   
   function nathansEmailPdfCode() {
 
@@ -733,4 +815,56 @@ function sendToXero() {
     //Browser.msgBox('Amounts', 'List sorted (by client FED No. then Reference No.)', Browser.Buttons.OK);
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//this function is used in the New_Client sheet, it adds a new payment line to the sales manager for each Self-Generated line on the page
+  function salesManagerPayments(){
+    var salesManagerName = "Simon Hanrahan";
+    var salesManagerPayment = 20;
+    
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var newClientsSheet = ss.getSheetByName("New_Clients");
+    
+    //takes all the data on the page
+    var newClientData = newClientsSheet.getDataRange().getValues();
+    var numberOfNewClientRows = newClientsSheet.getLastRow();
+    
+    //loops through it all looking for type self-gen
+    for (var i = 0; i < numberOfNewClientRows; i++) { 
+      if (newClientData[i][2] == "Self-Generated"){
+        //copies that line and adds it to a new line with simons name and $20 (as 2 variables)
+        newClientsSheet.appendRow([newClientData[i][0],
+                                   salesManagerName,
+                                   "Sales Manager Payment",
+                                   salesManagerPayment
+                                  ]);
+      
+      }
+    }
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //this function adds an extra line to the New_Client sheet with the 'type' set as Bonus
+ 
+  function bonusLine(){
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var newClientsSheet = ss.getSheetByName("New_Clients");
+    newClientsSheet.appendRow(["",
+                               "",
+                               "Bonus",
+                               ""
+                              ]);
+    
+  }
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //this function adds an extra line to the New_Client sheet with the 'type' set as Fuel Contribution
+
+  function fuelContLine(){
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var newClientsSheet = ss.getSheetByName("New_Clients");
+    newClientsSheet.appendRow(["",
+                               "",
+                               "Fuel Contribution",
+                               ""
+                              ]);
+    
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
