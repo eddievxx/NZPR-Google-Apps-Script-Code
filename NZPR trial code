@@ -533,49 +533,26 @@ function sendToXero() {
     var inboxSheetMenu = [];
     inboxSheetMenu = [
       {name: "1. Sort", functionName: "sortList"},
-      {name: "3. Check", functionName: "feeChecks"}
+      {name: "3. Check", functionName: "feeChecks"},
+      {name: "4. Send to Xero", functionName: "sendToXero"},
+      {name: "5. Email pdfs", functionName: "emailRemittanceAdvice"},
+      {name: "6. Clear sheet", functionName: "clearInboxSheet"}
     ];
     
     
     var newClientMenu = [];
     newClientMenu = [
-      {name: "Menu Entry 1", functionName: "function1"},
-      {name: "Menu Entry 2", functionName: "function2"}
+      {name: "Add Agent payment amounts", functionName: "newClientFees"},
+      {name: "Add 'Bonus' Line", functionName: "bonusLine"},
+      {name: "Add 'Fuel Contribution' Line", functionName: "fuelContLine"},
+      {name: "Add Sales Manager Payments", functionName: "salesManagerPayments"},
+      {name: "APPROVE NEW CLIENT PAYMENTS!", functionName: "approveNewClients"}
     ];
     
     ss.addMenu("Inbox_Sheet functions", inboxSheetMenu);
     ss.addMenu("New_Client functions", newClientMenu);
     
 
-    
-  /*
-    var ui = SpreadsheetApp.getUi();
-    // Or DocumentApp or FormApp.
-    ui.createMenu('NZPR Calculator Functions')
-    .addItem('New Email Code', 'nathansEmailPdfCode')
-    .addSeparator()
-    .addSubMenu(ui.createMenu('Inbox_Sheet')
-                .addItem('1. Sort', 'sortList'));
-    .addItem('3. Check', 'feeChecks'))
-    .addItem('4. Send to Xero', 'sendToXero'))
-    .addItem('5. Email pdfs', 'emailRemittanceAdvice'))
-    .addItem('6. Clear sheet', 'clearInboxSheet'))
-    
-    .addSubMenu(ui.createMenu('New_Client Sheet')
-                .addItem('Second item', 'menuItem2'))
-    
-    .addToUi();
-  */
-  /*
-  function menuItem1() {
-    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-    .alert('You clicked the first menu item!');
-  }
-  
-  function menuItem2() {
-    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-    .alert('You clicked the second menu item!');
-    */
     /*
     var IBS = [{name:"1. Sort", functionName:"sortList"}];
     var IBS = [{name:"3. Check", functionName:"feeChecks"}];
@@ -751,69 +728,40 @@ function sendToXero() {
     var amount = 0;
     
     for (var i = 0; i < numberOfNewClientRows; i++) { 
-      newClientAgentName = newClientData[i][1]; 
-      /* 
-      Logger.log("i: "+i);
-      Logger.log('NC agent name: ' +newClientAgentName);
-      Logger.log('type: ' +newClientData[i][2]);
-      */ 
-      
-      if (newClientData[i][2] == "Lead"){
-        Logger.log('type(lead): ' +newClientData[i][2]);
+      newClientAgentName = newClientData[i][2]; 
+            
+      if (newClientData[i][3] == "Telemarketed"){
+        Logger.log('type(lead): ' +newClientData[i][3]);
         for (var j = 0; j < numberOfAgentSheetRows; j++) { //looping through each line in agent sheet
           if (agentSheetData[j][2] == newClientAgentName){//if the agent name in the agent sheet matches the agent name in the New client sheet...
             amount = agentSheetData[j][13];//stores the value in the lead column into variable amount
-            newClientsSheet.getRange(i+1,4).setValue(amount);//sets the value of the variable amount to the amount column (col4) of New_Clients sheet
+            newClientsSheet.getRange(i+1,5).setValue(amount);//sets the value of the variable amount to the amount column (col4) of New_Clients sheet
           }
         }
       }
       
-      if (newClientData[i][2] == "Referral"){
-        Logger.log('type(lead): ' +newClientData[i][2]);
+      if (newClientData[i][3] == "Self-Generated"){
+        Logger.log('type(lead): ' +newClientData[i][3]);
         for (var j = 0; j < numberOfAgentSheetRows; j++) { //looping through each line in agent sheet
           if (agentSheetData[j][2] == newClientAgentName){//if the agent name in the agent sheet matches the agent name in the New client sheet...
             amount = agentSheetData[j][14];//stores the value in the lead column into variable amount
-            newClientsSheet.getRange(i+1,4).setValue(amount);//sets the value of the variable amount to the amount column (col4) of New_Clients sheet
+            newClientsSheet.getRange(i+1,5).setValue(amount);//sets the value of the variable amount to the amount column (col4) of New_Clients sheet
           }
         }
       }
       
-      if (newClientData[i][2] == "Finders Fee"){
-        Logger.log('type(lead): ' +newClientData[i][2]);
+      if (newClientData[i][3] == "Finders Fee"){
+        Logger.log('type(lead): ' +newClientData[i][3]);
         for (var j = 0; j < numberOfAgentSheetRows; j++) { //looping through each line in agent sheet
           if (agentSheetData[j][2] == newClientAgentName){//if the agent name in the agent sheet matches the agent name in the New client sheet...
             amount = agentSheetData[j][15];//stores the value in the lead column into variable amount
-            newClientsSheet.getRange(i+1,4).setValue(amount);//sets the value of the variable amount to the amount column (col4) of New_Clients sheet
+            newClientsSheet.getRange(i+1,5).setValue(amount);//sets the value of the variable amount to the amount column (col4) of New_Clients sheet
           }
         }
       }
-      
-            
     } 
-    
-    /* EXAMPLE SET RANGE CODE
-    SpreadsheetApp.getActiveSheet().getRange('F2').setValue('Hello');
-    or C2 is third column second row so >> getRange(2,3) >> getRange(row,col) 
-    
-    var cell = sheet.getRange("B2"); 
-    cell.setValue(100);
-    */
-    
-    /* EXAMPLE APPEND ROW CODE
-    singleSheet.appendRow([data[k][0],
-                  data[k][1],
-                  data[k][2],
-                  
-                  
-                  Logger.log(j+" "+i)
-                  Logger.log('targetFED: ' +targetFED);
-                  Logger.log('FED Number: ' + data[i][0]);
-                  Logger.log('Amount: ' + data[i][1]);
-    */
-    
-    
-    //Browser.msgBox('Amounts', 'List sorted (by client FED No. then Reference No.)', Browser.Buttons.OK);
   }
+  
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //this function is used in the New_Client sheet, it adds a new payment line to the sales manager for each Self-Generated line on the page
   function salesManagerPayments(){
@@ -829,9 +777,10 @@ function sendToXero() {
     
     //loops through it all looking for type self-gen
     for (var i = 0; i < numberOfNewClientRows; i++) { 
-      if (newClientData[i][2] == "Self-Generated"){
+      if (newClientData[i][3] == "Self-Generated"){
         //copies that line and adds it to a new line with simons name and $20 (as 2 variables)
-        newClientsSheet.appendRow([newClientData[i][0],
+        newClientsSheet.appendRow(["",
+                                   newClientData[i][1],
                                    salesManagerName,
                                    "Sales Manager Payment",
                                    salesManagerPayment
@@ -846,7 +795,8 @@ function sendToXero() {
   function bonusLine(){
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var newClientsSheet = ss.getSheetByName("New_Clients");
-    newClientsSheet.appendRow(["",
+    newClientsSheet.appendRow(["Y",
+                               "",
                                "",
                                "Bonus",
                                ""
@@ -859,7 +809,8 @@ function sendToXero() {
   function fuelContLine(){
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var newClientsSheet = ss.getSheetByName("New_Clients");
-    newClientsSheet.appendRow(["",
+    newClientsSheet.appendRow(["Y",
+                               "",
                                "",
                                "Fuel Contribution",
                                ""
@@ -867,4 +818,30 @@ function sendToXero() {
     
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+  //this function takes (approved/checked) lines from the New_Client sheet and writes them to the interim_data sheet, deleting them from 
+  //the new_client sheet
+  
+  function approveNewClients(){
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var newClientsSheet = ss.getSheetByName("New_Clients");
+    var interimSheet = ss.getSheetByName("Agent_Interim");
+    
+    var newClientData = newClientsSheet.getDataRange().getValues();
+    var numberOfNewClientRows = newClientsSheet.getLastRow();
+    
+    for (var i = 1; i < numberOfNewClientRows; i++) { 
+      if (newClientData[i][0] != ""){//checks if the row is marked/checked/approved
+        interimSheet.appendRow([newClientData[i][2],//sends the line to agent_interim sheet
+                                newClientData[i][1],
+                                "",
+                                "",
+                                "",
+                                newClientData[i][3],
+                                newClientData[i][4]
+                               ]);
+        
+        
+        
+      }
+    }
+  }
