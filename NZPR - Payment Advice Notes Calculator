@@ -241,7 +241,8 @@ function emailRemittanceAdvice() {
     var date = Utilities.formatDate(new Date(), "GMT+12", "dd-MM-yyyy'T'HH:mm:ss'Z'");
     
     // Send the PDF of the spreadsheet to this email address
-    var email = "bernard@nzpetrolrefunds.co.nz"; 
+    //var email = "bernard@nzpetrolrefunds.co.nz; 
+    var email = "nzprauto@gmail.com";
     
     
     // Subject of email message
