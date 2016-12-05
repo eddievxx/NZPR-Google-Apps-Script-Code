@@ -113,11 +113,14 @@ function feeChecks() {
         IagentCut[j] = data[i][8];
         ClientsEmail[j] = data[i][12];
       }
-      
+      /*
       JnzprCommission[j] = BtotalCredit[j]*NZPRcommisionRate+Ffee[j];
       KclientRefund[j] = BtotalCredit[j]*(1-NZPRcommisionRate)-Ffee[j];
       LagentCommission[j] = BtotalCredit[j]*(IagentCut[j]/100);
-      
+      */
+      JnzprCommission[j] = (BtotalCredit[j]/1.15)*NZPRcommisionRate+Ffee[j];
+      KclientRefund[j] = (BtotalCredit[j]/1.15)*(1-NZPRcommisionRate)-Ffee[j];
+      LagentCommission[j] = (BtotalCredit[j]/1.15)*(IagentCut[j]/100);
       
       //Sends to Logger
       ///*
@@ -225,9 +228,13 @@ function emailRemittanceAdvice() {
         ClientsFee[j] += data[i][5];
         ClientsFirstName[j] = data[i][16];
         
+        /*
         KclientRefund[j] = BtotalCredit[j]*(1-NZPRcommisionRate)-ClientsFee[j];
         KclientRefund[j] = KclientRefund[j].toFixed(2);
+        */
         
+        KclientRefund[j] = (BtotalCredit[j]/1.15)*(1-NZPRcommisionRate)-ClientsFee[j];
+        KclientRefund[j] = KclientRefund[j].toFixed(2);
       }
 
     }
@@ -241,9 +248,8 @@ function emailRemittanceAdvice() {
     var date = Utilities.formatDate(new Date(), "GMT+12", "dd-MM-yyyy'T'HH:mm:ss'Z'");
     
     // Send the PDF of the spreadsheet to this email address
-    //var email = "bernard@nzpetrolrefunds.co.nz; 
+    //var email = "bernard@nzpetrolrefunds.co.nz"; 
     var email = "nzprauto@gmail.com";
-    
     
     // Subject of email message
     //var subject = ClientsName[j] +" Invoice(s) " + date.toString();
@@ -468,9 +474,15 @@ function sendToXero() {
         IagentCut[j] = data[i][8];
       }
       
+      /*
       JnzprCommission[j] = BtotalCredit[j]*NZPRcommisionRate+Ffee[j];
       KclientRefund[j] = BtotalCredit[j]*(1-NZPRcommisionRate)-Ffee[j];
       LagentCommission[j] = BtotalCredit[j]*(IagentCut[j]/100);
+      */
+      
+      JnzprCommission[j] = (BtotalCredit[j]/1.15)*NZPRcommisionRate+Ffee[j];
+      KclientRefund[j] = (BtotalCredit[j]/1.15)*(1-NZPRcommisionRate)-Ffee[j];
+      LagentCommission[j] = (BtotalCredit[j]/1.15)*(IagentCut[j]/100);
       
       //Sends to Logger
       Logger.log(j+" "+i)
