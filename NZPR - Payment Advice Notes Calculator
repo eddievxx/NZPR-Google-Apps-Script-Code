@@ -235,6 +235,8 @@ function emailRemittanceAdvice() {
         
         KclientRefund[j] = (BtotalCredit[j]/1.15)*(1-NZPRcommisionRate)-ClientsFee[j];
         KclientRefund[j] = KclientRefund[j].toFixed(2);
+        var clientRefundInclusive = KclientRefund[j] * 1.15;
+        clientRefundInclusive = clientRefundInclusive.toFixed(2);
       }
 
     }
@@ -258,11 +260,11 @@ function emailRemittanceAdvice() {
     // Email Body can  be HTML too with your logo image - see ctrlq.org/html-mail
     //var body = ClientsName[j] +" Invoice(s) " + date.toString();
     if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent 
-      body = "Hi "+ClientsFirstName[j]+", \r\rGood news!\r\rWe've received your petrol refund from the NZTA and will be loading that up for payment into your bank account tonight. Your refund came to $"+KclientRefund[j]+".\r\rAttached to this email is a payment advice summary and our invoices. Please note that our fees have been removed already so there is no need to take any action on these.\r\rMoving forward we will be putting a claim in on your behalf at the end of each financial quarter.\r\rPlease let me know if you have any questions.\r\rKind regards,\r\rBernard Coogan\r\rDirector\r\rNZ Petrol Refunds Limited\r\rnzpetrolrefunds.co.nz\r\r021 2066 719";
+      body = "Hi "+ClientsFirstName[j]+", \r\rGood news!\r\rWe've received your petrol refund from the NZTA and will be loading that up for payment into your bank account tonight. Your refund came to $"+clientRefundInclusive+".\r\rAttached to this email is a payment advice summary and our invoices. Please note that our fees have been removed already so there is no need to take any action on these.\r\rMoving forward we will be putting a claim in on your behalf at the end of each financial quarter.\r\rPlease let me know if you have any questions.\r\rKind regards,\r\rBernard Coogan\r\rDirector\r\rNZ Petrol Refunds Limited\r\rnzpetrolrefunds.co.nz\r\r021 2066 719";
       
           
     } else {
-      body = "Hi "+ClientsFirstName[j]+", \r\rWe have received your latest refund from the NZTA and will be loading that up for payment into your account tonight.\r\rYour refund came to $"+KclientRefund[j]+".\r\rPlease see attached payment notice and invoice.\r\rKind regards,\r\rBernard Coogan\r\rDirector\r\rNZ Petrol Refunds Limited\r\rnzpetrolrefunds.co.nz\r\r021 2066 719"
+      body = "Hi "+ClientsFirstName[j]+", \r\rWe have received your latest refund from the NZTA and will be loading that up for payment into your account tonight.\r\rYour refund came to $"+clientRefundInclusive+".\r\rPlease see attached payment notice and invoice.\r\rKind regards,\r\rBernard Coogan\r\rDirector\r\rNZ Petrol Refunds Limited\r\rnzpetrolrefunds.co.nz\r\r021 2066 719"
     }
     
         
