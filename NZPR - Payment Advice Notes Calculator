@@ -260,7 +260,7 @@ function emailRemittanceAdvice() {
     // Email Body can  be HTML too with your logo image - see ctrlq.org/html-mail
     //var body = ClientsName[j] +" Invoice(s) " + date.toString();
     if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent 
-      body = "Hi "+ClientsFirstName[j]+", \r\rGood news!\r\rWe've received your petrol refund from the NZTA and will be loading that up for payment into your bank account tonight. Your refund came to $"+clientRefundInclusive+".\r\rAttached to this email is a payment advice summary and our invoices. Please note that our fees have been removed already so there is no need to take any action on these.\r\rMoving forward we will be putting a claim in on your behalf at the end of each financial quarter.\r\rPlease let me know if you have any questions.\r\rKind regards,\r\rBernard Coogan\r\rDirector\r\rNZ Petrol Refunds Limited\r\rnzpetrolrefunds.co.nz\r\r021 2066 719";
+      body = "Hi "+ClientsFirstName[j]+", \r\rGood news!\r\rWe've received your petrol refund from the NZTA and will be loading that up for payment into your bank account tonight.\r\rYour refund came to $"+clientRefundInclusive+".\r\rAttached to this email is a payment advice summary and our invoices.\r\rPlease note that our fees have been removed already so there is no need to take any action on these.\r\rMoving forward we will be putting a claim in on your behalf at the end of each financial quarter. We'll contact you to update our details in time for the next claim.\r\rPlease let me know if you have any questions.\r\rKind regards,\r\rBernard Coogan\r\rDirector\r\rNZ Petrol Refunds Limited\r\rnzpetrolrefunds.co.nz\r\r021 2066 719";
       
           
     } else {
@@ -402,6 +402,7 @@ function sendToXero() {
   var inboxSheet = ss.getSheetByName("Inbox_Sheet");
   var mergedSheet = ss.getSheetByName("Merged_Sheet");
   var singleSheet = ss.getSheetByName("Single_Sheet");
+  var agentPaymentSheet = ss.getSheetByName("Agent_Payment");
     
   inboxSheet.getRange("N2").setFormula("=UNIQUE(A2:A)");
   inboxSheet.getRange("O2").setFormula("=COUNTA(N2:N)");
@@ -518,6 +519,33 @@ function sendToXero() {
                            KclientRefund[k],
                            LagentCommission[k]
                           ]);
+    
+    //sends merged data & data for bill payments to Xero to agent_payment sheet
+    agentPaymentSheet.appendRow([ListOfFEDNumbers[k],                                                  //FED No.
+                                 BtotalCredit[k],                                                      //TOtal Credit
+                                 CpaymentDate[k],                                                      //Payment Date
+                                 DreferenceNumber[k],                                                  //Reference Number
+                                 EclaimPeriod[k],                                                      //Claim Period
+                                 Ffee[k],                                                              //Fee
+                                 GclientName[k],                                                       //Client
+                                 Hagent[k],                                                            //Agent Name
+                                 IagentCut[k],                                                         //Agent Cut %
+                                 "=VLOOKUP(AP_RangeH,Agents!$C$2:$M,11,0)",                            //GST Registered Y/N
+                                 "=VLOOKUP(AP_RangeH,Agents!$C$2:$N,12,0)",                            //WT Registered Y/N
+                                 "=(AP_RangeB/1.15)*(AP_RangeI/100)",                                  //Agent Commission Unit Price
+                                 "",                                                                   //New Client Description (not used here)
+                                 '="Commision on " & AP_RangeG & " for period(s) " & AP_RangeE',       //Description - Commission
+                                 "Withholding Tax",                                                    //Description - WT
+                                 "1",                                                                  //Qty - Commission
+                                 '=AP_RangeL',                                                         //Qty - WT
+                                 '=AP_RangeL',                                                         //Unit Price - Commission
+                                 '=IF(AP_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                 "455",                                                                //Acc Code - Commission
+                                 'WT',                                                                 //Acc Code - WT
+                                 '="INPUT2"',                                                          //Tax Rate - Commision
+                                 'NONE',                                                               //Tax Rate - WT
+                                 '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
+                                ]);
     
    
   }
