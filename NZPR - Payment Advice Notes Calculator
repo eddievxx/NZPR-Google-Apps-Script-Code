@@ -1,3 +1,33 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  function onOpen() {
+    
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    var inboxSheetMenu = [];
+    inboxSheetMenu = [
+      {name: "1. Sort", functionName: "sortList"},
+      {name: "3. Check", functionName: "feeChecks"},
+      {name: "4. Send to Xero", functionName: "sendToXero"},
+      {name: "5. Email pdfs", functionName: "emailRemittanceAdvice"},
+      {name: "6. Clear sheet", functionName: "clearInboxSheet"}
+    ];
+    
+    var newClientMenu = [];
+    newClientMenu = [
+      {name: "1. Add Agent payment amounts", functionName: "newClientFees"},
+      {name: "2. Add Sales Manager Payments (if any)", functionName: "salesManagerPayments"},
+      {name: "(op) Add 'Bonus' Line", functionName: "bonusLine"},
+      {name: "(op) Add 'Fuel Contribution' Line", functionName: "fuelContLine"},
+      {name: "3. MAKE Payments in Xero (if selected)", functionName: "makeNewClientPayments"},
+      {name: "4. Clear New_Client Sheet (if selected)", functionName: "clearNewClientSheet"}
+    ];
+    
+    ss.addMenu("Inbox_Sheet functions", inboxSheetMenu);
+    ss.addMenu("New_Client functions", newClientMenu);
+    
+  }
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function sortList(){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -403,13 +433,17 @@ function sendToXero() {
   var mergedSheet = ss.getSheetByName("Merged_Sheet");
   var singleSheet = ss.getSheetByName("Single_Sheet");
   var agentPaymentSheet = ss.getSheetByName("Agent_Payment");
+  
+  var clientSheet = ss.getSheetByName("Clients");
+  var clientSheetData = clientSheet.getDataRange().getValues();
+  var numberOfClientSheetDataRows = clientSheet.getLastRow();
     
   inboxSheet.getRange("N2").setFormula("=UNIQUE(A2:A)");
   inboxSheet.getRange("O2").setFormula("=COUNTA(N2:N)");
   
   var numberOfFEDNumbers = inboxSheet.getRange(2,15).getValues();
   
-  var data = inboxSheet.getDataRange().getValues();    //storing all the data on the page in an array for use in all calcs
+  var data = inboxSheet.getDataRange().getValues();    //storing all the data on the Inbox_Sheet page in an array for use in all calcs
   
   //sends a copy of each line to single sheet
   for (var k = 1; k < data.length; k++){//appends Single_Sheet with all the lines from Inbox_Sheet
@@ -465,7 +499,7 @@ function sendToXero() {
     for (var i = 1; i < data.length; i++){   //loop for each line in the spreadsheet
       
       
-      //merges and sends data to merged_sheet
+      //merges data
       if(data[i][0] == targetFED){           //ensures the data stored in each of the following arrays is for each unique FED number
         BtotalCredit[j] = +BtotalCredit[j] + +data[i][1];
         CpaymentDate[j] = data[i][2];
@@ -477,28 +511,10 @@ function sendToXero() {
         IagentCut[j] = data[i][8];
       }
       
-      /*
-      JnzprCommission[j] = BtotalCredit[j]*NZPRcommisionRate+Ffee[j];
-      KclientRefund[j] = BtotalCredit[j]*(1-NZPRcommisionRate)-Ffee[j];
-      LagentCommission[j] = BtotalCredit[j]*(IagentCut[j]/100);
-      */
-      
       JnzprCommission[j] = (BtotalCredit[j]/1.15)*NZPRcommisionRate+Ffee[j];
       KclientRefund[j] = (BtotalCredit[j]/1.15)*(1-NZPRcommisionRate)-Ffee[j];
       LagentCommission[j] = (BtotalCredit[j]/1.15)*(IagentCut[j]/100);
       
-      //Sends to Logger
-      Logger.log(j+" "+i)
-      Logger.log('targetFED: ' +targetFED);
-      Logger.log('FED Number: ' + data[i][0]);
-      Logger.log('Amount: ' + data[i][1]);
-      Logger.log('Payment Date: ' + data[i][2]);
-      Logger.log('Reference Number: ' + data[i][3]);
-      Logger.log('Claim Period: ' + data[i][4]);
-      Logger.log("SUM: " +BtotalCredit[j]);
-      Logger.log("RefNo: "+DreferenceNumber[j]);
-      Logger.log("Fee: "+Ffee[j]);
-      Logger.log("  ");
     }
     
 
@@ -506,6 +522,7 @@ function sendToXero() {
   //mergedSheet.getRange(2, 1, mergedSheet.getLastRow(), mergedSheet.getLastColumn()).clear();    //clears the 2nd sheet immediately prior to data being written to it
   for (var k = 0; k < numberOfFEDNumbers; k++){
     
+    //sends merged data to merged_sheet
     mergedSheet.appendRow([ListOfFEDNumbers[k],
                            BtotalCredit[k],
                            CpaymentDate[k],
@@ -516,8 +533,7 @@ function sendToXero() {
                            Hagent[k],
                            IagentCut[k],
                            JnzprCommission[k],
-                           KclientRefund[k],
-                           LagentCommission[k]
+                           KclientRefund[k]
                           ]);
     
     //sends merged data & data for bill payments to Xero to agent_payment sheet
@@ -540,20 +556,359 @@ function sendToXero() {
                                  '=AP_RangeL',                                                         //Qty - WT
                                  '=AP_RangeL',                                                         //Unit Price - Commission
                                  '=IF(AP_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
-                                 "455",                                                                //Acc Code - Commission
+                                 "455",                                                                //Acc Code - Commission - Agent
                                  'WT',                                                                 //Acc Code - WT
                                  '="INPUT2"',                                                          //Tax Rate - Commision
                                  'NONE',                                                               //Tax Rate - WT
                                  '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
                                 ]);
     
-   
+    
+    //sends Sales Manager recurring payments to agent_payment sheet (for Xero)
+
+    var salesManagerPercent = 1;
+    var salesManager = "Simon Hanrahan";
+    var salesManagerStartDate = new Date('11/21/2016');
+    //Logger.log("sm srt date: "+salesManagerStartDate);
+       
+    for (var z = 0; z < numberOfClientSheetDataRows; z++){ 
+      if (clientSheetData[z][14] == salesManager && clientSheetData[z][1] == GclientName[k]){
+        //Logger.log("equals: "+clientSheetData[z][14]);
+      
+        var approvedDate = new Date(clientSheetData[z][13]);
+        //Logger.log("appr. date: " +approvedDate);
+     
+        if (DateDiff.inDays(salesManagerStartDate, approvedDate) >= 0){
+          //Logger.log(approvedDate + " is on or after " +salesManagerStartDate);
+          agentPaymentSheet.appendRow([ListOfFEDNumbers[k],
+                                       BtotalCredit[k],
+                                       CpaymentDate[k],
+                                       DreferenceNumber[k],
+                                       EclaimPeriod[k],
+                                       Ffee[k],
+                                       GclientName[k],                                        //Client
+                                       salesManager,                                          //Sales Manager's Name in Agent column
+                                       salesManagerPercent,                                   //Sales Manager's % in Agent cut % column
+                                       "=VLOOKUP(AP_RangeH,Agents!$C$2:$M,11,0)",                            //GST Registered Y/N
+                                       "=VLOOKUP(AP_RangeH,Agents!$C$2:$N,12,0)",                            //WT Registered Y/N
+                                       "=(AP_RangeB/1.15)*(AP_RangeI/100)",                                  //Agent Commission Unit Price
+                                       "",                                                                   //New Client Description (not used here)
+                                       '="Sales Managers Commision on " & AP_RangeG & " for period(s) " & AP_RangeE',       //Description - Commission
+                                       "Withholding Tax",                                                    //Description - WT
+                                       "1",                                                                  //Qty - Commission
+                                       '=AP_RangeL',                                                         //Qty - WT
+                                       '=AP_RangeL',                                                         //Unit Price - Commission
+                                       '=IF(AP_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                       "457",                                                                //Acc Code - Commission - SalesManager
+                                       'WT',                                                                 //Acc Code - WT
+                                       '="INPUT2"',                                                          //Tax Rate - Commision
+                                       'NONE',                                                               //Tax Rate - WT
+                                       '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
+                                      ]);
+          
+        }
+      }
+    }
+    //sends Finder's recurring payments to agent_payment sheet (for Xero)
+    
+    var finder = "Murray Nash";
+    var findersPercent = 1;
+    
+    for (var z = 0; z < numberOfClientSheetDataRows; z++){ 
+       if (clientSheetData[z][15] == finder && clientSheetData[z][1] == GclientName[k]){
+         Logger.log("finder: " + clientSheetData[z][15]);
+         agentPaymentSheet.appendRow([ListOfFEDNumbers[k],
+                                     BtotalCredit[k],
+                                     CpaymentDate[k],
+                                     DreferenceNumber[k],
+                                     EclaimPeriod[k],
+                                     Ffee[k],
+                                     GclientName[k],                                                       //Client
+                                     finder   ,                                                            //Finder's Name in Agent column
+                                     findersPercent,                                                       //Finder's % in Agent cut % column
+                                     "=VLOOKUP(AP_RangeH,Agents!$C$2:$M,11,0)",                            //GST Registered Y/N
+                                     "=VLOOKUP(AP_RangeH,Agents!$C$2:$N,12,0)",                            //WT Registered Y/N
+                                     "=(AP_RangeB/1.15)*(AP_RangeI/100)",                                  //Agent Commission Unit Price
+                                     "",                                                                   //New Client Description (not used here)
+                                     '="Finder\'s Commision on " & AP_RangeG & " for period(s) " & AP_RangeE',       //Description - Commission
+                                     "Withholding Tax",                                                    //Description - WT
+                                     "1",                                                                  //Qty - Commission
+                                     '=AP_RangeL',                                                         //Qty - WT
+                                     '=AP_RangeL',                                                         //Unit Price - Commission
+                                     '=IF(AP_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                     "456",                                                                //Acc Code - Commission - Finder
+                                     'WT',                                                                 //Acc Code - WT
+                                     '="INPUT2"',                                                          //Tax Rate - Commision
+                                     'NONE',                                                               //Tax Rate - WT
+                                     '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
+                                    ]);
+       }
+    }
+  
+    
+    Browser.msgBox('Send to Xero', 'The payment information has been sent to Xero.', Browser.Buttons.OK);
+  }}
+var DateDiff = {    
+    inDays: function(d1, d2) {
+        var t2 = d2.getTime();
+        var t1 = d1.getTime();
+
+        return parseInt((t2-t1)/(24*3600*1000));
+    },
+    inWeeks: function(d1, d2) {
+        var t2 = d2.getTime();
+        var t1 = d1.getTime();
+
+        return parseInt((t2-t1)/(24*3600*1000*7));
+    },
+    inMonths: function(d1, d2) {
+        var d1Y = d1.getFullYear();
+        var d2Y = d2.getFullYear();
+        var d1M = d1.getMonth();
+        var d2M = d2.getMonth();
+
+        return (d2M+12*d2Y)-(d1M+12*d1Y);
+    },
+    inYears: function(d1, d2) {
+        return d2.getFullYear()-d1.getFullYear();
+    }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  function newClientFees(){
+    
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+
+    
+    var newClientsSheet = ss.getSheetByName("New_Clients");
+    var agentsSheet = ss.getSheetByName("Agents")
+    
+    var newClientData = newClientsSheet.getDataRange().getValues();
+    var agentSheetData = agentsSheet.getDataRange().getValues();
+    
+    var newClientAgentName = new String();
+
+    var numberOfNewClientRows = newClientsSheet.getLastRow();
+    //Logger.log("numberOfNewClientRows: "+numberOfNewClientRows);
+    var numberOfAgentSheetRows = agentsSheet.getLastRow();
+    //Logger.log("numberOfAgentSheetRows: "+numberOfAgentSheetRows);    
+    
+    var amount = 0;
+    
+    for (var i = 0; i < numberOfNewClientRows; i++) { 
+      newClientAgentName = newClientData[i][2]; 
+            
+      if (newClientData[i][3] == "Telemarketed"){
+        Logger.log('type(lead): ' +newClientData[i][3]);
+        for (var j = 0; j < numberOfAgentSheetRows; j++) { //looping through each line in agent sheet
+          if (agentSheetData[j][2] == newClientAgentName){//if the agent name in the agent sheet matches the agent name in the New client sheet...
+            amount = agentSheetData[j][14];//stores the value in the Telemarketed column into variable amount
+            newClientsSheet.getRange(i+1,5).setValue(amount);//sets the value of the variable amount to the amount column (col4) of New_Clients sheet
+          }
+        }
+      }
+      
+      if (newClientData[i][3] == "Self-Generated"){
+        Logger.log('type(lead): ' +newClientData[i][3]);
+        for (var j = 0; j < numberOfAgentSheetRows; j++) { //looping through each line in agent sheet
+          if (agentSheetData[j][2] == newClientAgentName){//if the agent name in the agent sheet matches the agent name in the New client sheet...
+            amount = agentSheetData[j][15];//stores the value in the Self-Generated column into variable amount
+            newClientsSheet.getRange(i+1,5).setValue(amount);//sets the value of the variable amount to the amount column (col4) of New_Clients sheet
+          }
+        }
+      }
+      
+      if (newClientData[i][3] == "Finders Fee"){
+        Logger.log('type(lead): ' +newClientData[i][3]);
+        for (var j = 0; j < numberOfAgentSheetRows; j++) { //looping through each line in agent sheet
+          if (agentSheetData[j][2] == newClientAgentName){//if the agent name in the agent sheet matches the agent name in the New client sheet...
+            amount = agentSheetData[j][16];//stores the value in the Finders Fee column into variable amount
+            newClientsSheet.getRange(i+1,5).setValue(amount);//sets the value of the variable amount to the amount column (col4) of New_Clients sheet
+          }
+        }
+      }
+    } 
   }
   
-  //inboxSheet.getRange(2, 1, inboxSheet.getLastRow(), inboxSheet.getLastColumn()).clear();    //clears the sheet
-    //Browser.msgBox('Merge & Clear', 'You have now finished with the Spreadsheet. The merged rows have been added to the "Merged_Sheet" to be sent to Xero.', Browser.Buttons.OK);
-    Browser.msgBox('Send to Xero', 'The payment information has been sent to Xero.', Browser.Buttons.OK);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//this function is used in the New_Client sheet, it adds a new payment line to the sales manager for each Self-Generated line on the page
+  function salesManagerPayments(){
+    var salesManagerName = "Simon Hanrahan";
+    var salesManagerPayment = 20;
+    
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var newClientsSheet = ss.getSheetByName("New_Clients");
+    
+    //takes all the data on the page
+    var newClientData = newClientsSheet.getDataRange().getValues();
+    var numberOfNewClientRows = newClientsSheet.getLastRow();
+    
+    //loops through it all looking for type self-gen
+    for (var i = 0; i < numberOfNewClientRows; i++) { 
+      if (newClientData[i][3] == "Self-Generated"){
+        
+        //copies that line and adds it to a new line with simons name and $20 (as 2 variables)
+        newClientsSheet.appendRow(["Y",
+                                   newClientData[i][1],
+                                   salesManagerName,
+                                   "Sales Manager Payment",
+                                   salesManagerPayment
+                                  ]);
+      
+      }
+    }
+    // removes blank lines
+    var sheet = SpreadsheetApp.getActiveSheet();
+    var rows = sheet.getDataRange();
+    var numRows = rows.getNumRows();
+    var values = rows.getValues();
+    
+    var rowsDeleted = 0;
+    for (var i = 1; i <= numRows - 1; i++) {//i=1 so row 0 (the headers) are not deleted
+      var row = values[i];
+      if (row[0] == '' && row[1] == '' && row[2] == '' && row[3] == '' && row[4] == '') {//checks all columns are blank
+        sheet.deleteRow((parseInt(i)+1) - rowsDeleted);
+        rowsDeleted++;
+      }
+    }
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //this function adds an extra line to the New_Client sheet with the 'type' set as Bonus
  
+  function bonusLine(){
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var newClientsSheet = ss.getSheetByName("New_Clients");
+    newClientsSheet.appendRow(["Y",
+                               "",
+                               "",
+                               "Bonus",
+                               ""
+                              ]);
+    
+    // removes blank lines
+    var sheet = SpreadsheetApp.getActiveSheet();
+    var rows = sheet.getDataRange();
+    var numRows = rows.getNumRows();
+    var values = rows.getValues();
+    
+    var rowsDeleted = 0;
+    for (var i = 1; i <= numRows - 1; i++) {//i=1 so row 0 (the headers) are not deleted
+      var row = values[i];
+      if (row[0] == '' && row[1] == '' && row[2] == '' && row[3] == '' && row[4] == '') {//checks all columns are blank
+        sheet.deleteRow((parseInt(i)+1) - rowsDeleted);
+        rowsDeleted++;
+      }
+    }
+    
+  }
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //this function adds an extra line to the New_Client sheet with the 'type' set as Fuel Contribution
+
+  function fuelContLine(){
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var newClientsSheet = ss.getSheetByName("New_Clients");
+    newClientsSheet.appendRow(["Y",
+                               "",
+                               "",
+                               "Fuel Contribution",
+                               ""
+                              ]);
+    
+    // removes blank lines
+    var sheet = SpreadsheetApp.getActiveSheet();
+    var rows = sheet.getDataRange();
+    var numRows = rows.getNumRows();
+    var values = rows.getValues();
+    
+    var rowsDeleted = 0;
+    for (var i = 1; i <= numRows - 1; i++) {//i=1 so row 0 (the headers) are not deleted
+      var row = values[i];
+      if (row[0] == '' && row[1] == '' && row[2] == '' && row[3] == '' && row[4] == '') {//checks all columns are blank
+        sheet.deleteRow((parseInt(i)+1) - rowsDeleted);
+        rowsDeleted++;
+      }
+    }
+  }
+  
+ 
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //this function takes (approved/checked) lines from the New_Client sheet and writes them to the interim_data sheet & agent_payment sheet 
+  //
+  
+  function makeNewClientPayments(){
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var newClientsSheet = ss.getSheetByName("New_Clients");
+    var interimSheet = ss.getSheetByName("Agent_Interim");
+    var agentPaymentSheet = ss.getSheetByName("Agent_Payment");
+    
+    var newClientData = newClientsSheet.getDataRange().getValues();
+    var numberOfNewClientRows = newClientsSheet.getLastRow();
+    
+    for (var i = 1; i < numberOfNewClientRows; i++) { 
+      if (newClientData[i][0] != ""){//checks if the row is marked/checked/approved
+       
+        /*
+        interimSheet.appendRow([newClientData[i][2],    //sends the line to agent_interim sheet - for remittance advice?
+                                newClientData[i][1],
+                                "",
+                                "",
+                                "",
+                                newClientData[i][3],
+                                newClientData[i][4]
+                               ]);
+        */
+        
+        agentPaymentSheet.appendRow(["",//sends the line to agent_interim sheet                 Blank (FED No.)
+                                     "",
+                                     "",
+                                     "",
+                                     "",
+                                     "",
+                                     newClientData[i][1],                                    // Client Name
+                                     newClientData[i][2],                                    // Agent
+                                     "",                                                     // Blank (Agent Cut %)
+                                     "=VLOOKUP(AP_RangeH,Agents!$C$2:$M,11,0)",              // GST Registered Y/N
+                                     "=VLOOKUP(AP_RangeH,Agents!$C$2:$N,12,0)",              // WT Registered Y/N
+                                     newClientData[i][4],                                    // Unit Price
+                                     newClientData[i][3],                                    // New Client Description
+                                     '=IF(AP_RangeM = "Bonus",AP_RangeM&" Payment", IF(AP_RangeM = "Fuel Contribution",AP_RangeM&" Payment",AP_RangeM&" New Client Registration for "&AP_RangeG))', // Description - Commission
+                                     "Withholding Tax",                                      // Description - WT
+                                     "1",                                                                  //Qty - Commission
+                                     '=AP_RangeL',                                                         //Qty - WT
+                                     '=AP_RangeL',                                                         //Unit Price - Commission
+                                     '=IF(AP_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                     '=If(AP_RangeM ="Telemarketed","4201",IF(AP_RangeM = "Self-Generated","4202",IF(AP_RangeM = "Sales Manager Payment", "4301",IF(AP_RangeM = "Bonus","4401",IF(AP_RangeM = "Fuel Contribution","4402",IF(AP_RangeM = "Finders Fee","4302","455"))))))',                                                                //Acc Code - Commission
+                                     'WT',                                                                 //Acc Code - WT
+                                     '="INPUT2"',                                                          //Tax Rate - Commision
+                                     'NONE',                                                               //Tax Rate - WT
+                                     '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
+                                    ]);
+                
+        
+        
+        
+      }
+    }
+  }
+
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  function clearNewClientSheet() {
+    var sheet = SpreadsheetApp.getActiveSheet();
+    var rows = sheet.getDataRange();
+    var numRows = rows.getNumRows();
+    var values = rows.getValues();
+    
+    var rowsDeleted = 0;
+    for (var i = 1; i <= numRows - 1; i++) {//i=1 so row 0 (the headers) are not deleted
+      var row = values[i];
+      if (row[0] != '') {//checks to make sure only rows with something in the first column are selected
+        sheet.deleteRow((parseInt(i)+1) - rowsDeleted);
+        rowsDeleted++;
+      }
+    }
+  }
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+
