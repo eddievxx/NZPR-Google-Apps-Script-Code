@@ -8,8 +8,8 @@
       {name: "1. Sort", functionName: "sortList"},
       {name: "3. Check", functionName: "feeChecks"},
       {name: "4. Send to Xero", functionName: "sendToXero"},
-      {name: "5. Email pdfs", functionName: "emailRemittanceAdvice"},
-      {name: "6. Clear sheet", functionName: "clearInboxSheet"}
+      {name: "5. Create Client pdfs", functionName: "emailRemittanceAdvice"},
+      {name: "6. Clear Inbox_Sheet", functionName: "clearInboxSheet"}
     ];
     
     var newClientMenu = [];
@@ -18,14 +18,22 @@
       {name: "2. Add Sales Manager Payments (if any)", functionName: "salesManagerPayments"},
       {name: "(op) Add 'Bonus' Line", functionName: "bonusLine"},
       {name: "(op) Add 'Fuel Contribution' Line", functionName: "fuelContLine"},
-      {name: "3. MAKE Payments in Xero (if selected)", functionName: "makeNewClientPayments"},
-      {name: "4. Clear New_Client Sheet (if selected)", functionName: "clearNewClientSheet"}
+      {name: "3. Make Payments in Xero (if selected)", functionName: "makeNewClientPayments"},
+      {name: "4. Clear New_Client sheet (if selected)", functionName: "clearNewClientSheet"}
+    ];
+    
+    var agentRemitMenu = [];
+    agentRemitMenu = [
+      {name: "1. Create Agent Remittance pfds", functionName: "emailAgentRemittanceAdvice"},
+      {name: "2. Clear Agent_Remittance sheet", functionName: "clearAgentRemittanceSheet"}     
     ];
     
     ss.addMenu("Inbox_Sheet functions", inboxSheetMenu);
     ss.addMenu("New_Client functions", newClientMenu);
+    ss.addMenu("Agent Remittance", agentRemitMenu);
     
   }
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -331,7 +339,7 @@ function emailRemittanceAdvice() {
     ///////////////////////////////////////////////////////////////
     if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent
     
-      for (var i = 6; i < 7; i++) {//selecting sheet 6 to turn into pdf and email
+      for (var i = 5; i < 6; i++) {//selecting sheet 5 to turn into pdf and email
 
         // Convert individual worksheets to PDF
         var response = cUseful.Utils.expBackoff(
@@ -356,12 +364,12 @@ function emailRemittanceAdvice() {
       }
       if (MailApp.getRemainingDailyQuota() > 0)
             GmailApp.sendEmail(email, subject, body, {
-        attachments: [blobs[6].getAs(MimeType.PDF)],
+        attachments: [blobs[5].getAs(MimeType.PDF)],
         name: 'NZ Petrol Refunds'
       });
     }
     else {
-      for (var i = 7; i < 8; i++) {//selecting sheets 7 to turn into pdf and email
+      for (var i = 6; i < 7; i++) {//selecting sheets 6 to turn into pdf and email
         
         // Convert individual worksheets to PDF
         var response = cUseful.Utils.expBackoff(
@@ -388,7 +396,7 @@ function emailRemittanceAdvice() {
       
       if (MailApp.getRemainingDailyQuota() > 0)
         GmailApp.sendEmail(email, subject, body, {
-          attachments: [blobs[7].getAs(MimeType.PDF)],
+          attachments: [blobs[6].getAs(MimeType.PDF)],
           name: 'NZ Petrol Refunds'
         });
       
@@ -422,7 +430,8 @@ function clearDataSheet() {
 }
  
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//This function is in use; it merges client's NZTA emails into one per client and sends to Xero, also copies individual lines for sending to Xero for NZTA invoices
+//merges client's NZTA emails into one per client and sends to Xero, also copies individual lines for sending to Xero for NZTA invoices, aslo lines go to 
+//Agent_Payment sheet to go to Xero, and to Agent_Remittance sheet for generating agent remittance advice
 function sendToXero() {
   var NZPRcommisionRate = 0.15;        //this is where the NZPR commision is set
   
@@ -433,6 +442,7 @@ function sendToXero() {
   var mergedSheet = ss.getSheetByName("Merged_Sheet");
   var singleSheet = ss.getSheetByName("Single_Sheet");
   var agentPaymentSheet = ss.getSheetByName("Agent_Payment");
+  var AgentRemittanceSheet = ss.getSheetByName("Agent_Remittance");
   
   var clientSheet = ss.getSheetByName("Clients");
   var clientSheetData = clientSheet.getDataRange().getValues();
@@ -549,7 +559,7 @@ function sendToXero() {
                                  "=VLOOKUP(AP_RangeH,Agents!$C$2:$M,11,0)",                            //GST Registered Y/N
                                  "=VLOOKUP(AP_RangeH,Agents!$C$2:$N,12,0)",                            //WT Registered Y/N
                                  "=(AP_RangeB/1.15)*(AP_RangeI/100)",                                  //Agent Commission Unit Price
-                                 "",                                                                   //New Client Description (not used here)
+                                 "Agent Commission",                                                   //Payment/Commission Description  
                                  '="Commision on " & AP_RangeG & " for period(s) " & AP_RangeE',       //Description - Commission
                                  "Withholding Tax",                                                    //Description - WT
                                  "1",                                                                  //Qty - Commission
@@ -561,6 +571,35 @@ function sendToXero() {
                                  '="INPUT2"',                                                          //Tax Rate - Commision
                                  'NONE',                                                               //Tax Rate - WT
                                  '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
+                                ]);
+    
+    
+    AgentRemittanceSheet.appendRow([ListOfFEDNumbers[k],                                                  //FED No.
+                                 BtotalCredit[k],                                                      //TOtal Credit
+                                 CpaymentDate[k],                                                      //Payment Date
+                                 DreferenceNumber[k],                                                  //Reference Number
+                                 EclaimPeriod[k],                                                      //Claim Period
+                                 Ffee[k],                                                              //Fee
+                                 GclientName[k],                                                       //Client
+                                 Hagent[k],                                                            //Agent Name
+                                 IagentCut[k],                                                         //Agent Cut %
+                                 "=VLOOKUP(AI_RangeH,Agents!$C$2:$M,11,0)",                            //GST Registered Y/N
+                                 "=VLOOKUP(AI_RangeH,Agents!$C$2:$N,12,0)",                            //WT Registered Y/N
+                                 "=(AI_RangeB/1.15)*(AI_RangeI/100)",                                  //Agent Commission Unit Price
+                                 "Agent Commission",                                                   //Payment/Commission Description  
+                                 '="Commision on " & AI_RangeG & " for period(s) " & AI_RangeE',       //Description - Commission
+                                 "Withholding Tax",                                                    //Description - WT
+                                 "1",                                                                  //Qty - Commission
+                                 '=AI_RangeL',                                                         //Qty - WT
+                                 '=AI_RangeL',                                                         //Unit Price - Commission
+                                 '=IF(AI_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                 "455",                                                                //Acc Code - Commission - Agent
+                                 'WT',                                                                 //Acc Code - WT
+                                 '="INPUT2"',                                                          //Tax Rate - Commision
+                                 'NONE',                                                               //Tax Rate - WT
+                                 '=IF(AI_RangeJ = "N","NoTax","Exclusive")',                           //*Tax Type 
+                                 '=VLOOKUP(AI_RangeH,Agents!$C$2:$J,8,0)',                             //agents email address
+                                 '=SPLIT(AI_RangeH," ")'                                               //agents first (alnd last) name, spit
                                 ]);
     
     
@@ -592,7 +631,7 @@ function sendToXero() {
                                        "=VLOOKUP(AP_RangeH,Agents!$C$2:$M,11,0)",                            //GST Registered Y/N
                                        "=VLOOKUP(AP_RangeH,Agents!$C$2:$N,12,0)",                            //WT Registered Y/N
                                        "=(AP_RangeB/1.15)*(AP_RangeI/100)",                                  //Agent Commission Unit Price
-                                       "",                                                                   //New Client Description (not used here)
+                                       "Sales Manager Commission",                                           //Payment/Commission Description 
                                        '="Sales Managers Commision on " & AP_RangeG & " for period(s) " & AP_RangeE',       //Description - Commission
                                        "Withholding Tax",                                                    //Description - WT
                                        "1",                                                                  //Qty - Commission
@@ -606,6 +645,36 @@ function sendToXero() {
                                        '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
                                       ]);
           
+          AgentRemittanceSheet.appendRow([ListOfFEDNumbers[k],
+                                       BtotalCredit[k],
+                                       CpaymentDate[k],
+                                       DreferenceNumber[k],
+                                       EclaimPeriod[k],
+                                       Ffee[k],
+                                       GclientName[k],                                        //Client
+                                       salesManager,                                          //Sales Manager's Name in Agent column
+                                       salesManagerPercent,                                   //Sales Manager's % in Agent cut % column
+                                       "=VLOOKUP(AI_RangeH,Agents!$C$2:$M,11,0)",                            //GST Registered Y/N
+                                       "=VLOOKUP(AI_RangeH,Agents!$C$2:$N,12,0)",                            //WT Registered Y/N
+                                       "=(AI_RangeB/1.15)*(AI_RangeI/100)",                                  //Agent Commission Unit Price
+                                       "Sales Manager Commission",                                           //Payment/Commission Description 
+                                       '="Sales Managers Commision on " & AI_RangeG & " for period(s) " & AI_RangeE',       //Description - Commission
+                                       "Withholding Tax",                                                    //Description - WT
+                                       "1",                                                                  //Qty - Commission
+                                       '=AI_RangeL',                                                         //Qty - WT
+                                       '=AI_RangeL',                                                         //Unit Price - Commission
+                                       '=IF(AI_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                       "457",                                                                //Acc Code - Commission - SalesManager
+                                       'WT',                                                                 //Acc Code - WT
+                                       '="INPUT2"',                                                          //Tax Rate - Commision
+                                       'NONE',                                                               //Tax Rate - WT
+                                       '=IF(AI_RangeJ = "N","NoTax","Exclusive")',                            //*Tax Type 
+                                       '=VLOOKUP(AI_RangeH,Agents!$C$2:$J,8,0)',                             //agents email address
+                                       '=SPLIT(AI_RangeH," ")'                                               //agents first (alnd last) name, spit
+                                       
+                                      ]);
+          
+          
         }
       }
     }
@@ -617,31 +686,60 @@ function sendToXero() {
     for (var z = 0; z < numberOfClientSheetDataRows; z++){ 
        if (clientSheetData[z][15] == finder && clientSheetData[z][1] == GclientName[k]){
          Logger.log("finder: " + clientSheetData[z][15]);
-         agentPaymentSheet.appendRow([ListOfFEDNumbers[k],
-                                     BtotalCredit[k],
-                                     CpaymentDate[k],
-                                     DreferenceNumber[k],
-                                     EclaimPeriod[k],
-                                     Ffee[k],
-                                     GclientName[k],                                                       //Client
-                                     finder   ,                                                            //Finder's Name in Agent column
-                                     findersPercent,                                                       //Finder's % in Agent cut % column
-                                     "=VLOOKUP(AP_RangeH,Agents!$C$2:$M,11,0)",                            //GST Registered Y/N
-                                     "=VLOOKUP(AP_RangeH,Agents!$C$2:$N,12,0)",                            //WT Registered Y/N
-                                     "=(AP_RangeB/1.15)*(AP_RangeI/100)",                                  //Agent Commission Unit Price
-                                     "",                                                                   //New Client Description (not used here)
-                                     '="Finder\'s Commision on " & AP_RangeG & " for period(s) " & AP_RangeE',       //Description - Commission
-                                     "Withholding Tax",                                                    //Description - WT
-                                     "1",                                                                  //Qty - Commission
-                                     '=AP_RangeL',                                                         //Qty - WT
-                                     '=AP_RangeL',                                                         //Unit Price - Commission
-                                     '=IF(AP_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
-                                     "456",                                                                //Acc Code - Commission - Finder
-                                     'WT',                                                                 //Acc Code - WT
-                                     '="INPUT2"',                                                          //Tax Rate - Commision
-                                     'NONE',                                                               //Tax Rate - WT
-                                     '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
-                                    ]);
+         agentPaymentSheet.appendRow([ListOfFEDNumbers[k],//to agent payment sheet to send to Xero
+                                      BtotalCredit[k],
+                                      CpaymentDate[k],
+                                      DreferenceNumber[k],
+                                      EclaimPeriod[k],
+                                      Ffee[k],
+                                      GclientName[k],                                                       //Client
+                                      finder,                                                            //Finder's Name in Agent column
+                                      findersPercent,                                                       //Finder's % in Agent cut % column
+                                      "=VLOOKUP(AP_RangeH,Agents!$C$2:$M,11,0)",                            //GST Registered Y/N
+                                      "=VLOOKUP(AP_RangeH,Agents!$C$2:$N,12,0)",                            //WT Registered Y/N
+                                      "=(AP_RangeB/1.15)*(AP_RangeI/100)",                                  //Agent Commission Unit Price
+                                      "Finder's Commission",                                                //Payment/Commission Description 
+                                      '="Finder\'s Commission on " & AP_RangeG & " for period(s) " & AP_RangeE',       //Description - Commission
+                                      "Withholding Tax",                                                    //Description - WT
+                                      "1",                                                                  //Qty - Commission
+                                      '=AP_RangeL',                                                         //Qty - WT
+                                      '=AP_RangeL',                                                         //Unit Price - Commission
+                                      '=IF(AP_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                      "456",                                                                //Acc Code - Commission - Finder
+                                      'WT',                                                                 //Acc Code - WT
+                                      '="INPUT2"',                                                          //Tax Rate - Commision
+                                      'NONE',                                                               //Tax Rate - WT
+                                      '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
+                                     ]);
+         
+         AgentRemittanceSheet.appendRow([ListOfFEDNumbers[k],//to agent interim sheet to hold for creating remittance advice
+                                      BtotalCredit[k],
+                                      CpaymentDate[k],
+                                      DreferenceNumber[k],
+                                      EclaimPeriod[k],
+                                      Ffee[k],
+                                      GclientName[k],                                                       //Client
+                                      finder,                                                               //Finder's Name in Agent column
+                                      findersPercent,                                                       //Finder's % in Agent cut % column
+                                      "=VLOOKUP(AI_RangeH,Agents!$C$2:$M,11,0)",                            //GST Registered Y/N
+                                      "=VLOOKUP(AI_RangeH,Agents!$C$2:$N,12,0)",                            //WT Registered Y/N
+                                      "=(AI_RangeB/1.15)*(AI_RangeI/100)",                                  //Agent Commission Unit Price
+                                      "Finder's Commission",                                                //Payment/Commission Description 
+                                      '="Finder\'s Commission on " & AI_RangeG & " for period(s) " & AI_RangeE',       //Description - Commission
+                                      "Withholding Tax",                                                    //Description - WT
+                                      "1",                                                                  //Qty - Commission
+                                      '=AI_RangeL',                                                         //Qty - WT
+                                      '=AI_RangeL',                                                         //Unit Price - Commission
+                                      '=IF(AI_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                      "456",                                                                //Acc Code - Commission - Finder
+                                      'WT',                                                                 //Acc Code - WT
+                                      '="INPUT2"',                                                          //Tax Rate - Commision
+                                      'NONE',                                                               //Tax Rate - WT
+                                      '=IF(AI_RangeJ = "N","NoTax","Exclusive")',                            //*Tax Type 
+                                      '=VLOOKUP(AI_RangeH,Agents!$C$2:$J,8,0)',                             //agents email address
+                                      '=SPLIT(AI_RangeH," ")'                                               //agents first (alnd last) name, split
+                                     ]);
+         
        }
     }
   
@@ -752,7 +850,7 @@ var DateDiff = {
         newClientsSheet.appendRow(["Y",
                                    newClientData[i][1],
                                    salesManagerName,
-                                   "Sales Manager Payment",
+                                   "Sales Manager",
                                    salesManagerPayment
                                   ]);
       
@@ -839,7 +937,7 @@ var DateDiff = {
   function makeNewClientPayments(){
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var newClientsSheet = ss.getSheetByName("New_Clients");
-    var interimSheet = ss.getSheetByName("Agent_Interim");
+    var AgentRemittanceSheet = ss.getSheetByName("Agent_Remittance");
     var agentPaymentSheet = ss.getSheetByName("Agent_Payment");
     
     var newClientData = newClientsSheet.getDataRange().getValues();
@@ -848,18 +946,9 @@ var DateDiff = {
     for (var i = 1; i < numberOfNewClientRows; i++) { 
       if (newClientData[i][0] != ""){//checks if the row is marked/checked/approved
        
-        /*
-        interimSheet.appendRow([newClientData[i][2],    //sends the line to agent_interim sheet - for remittance advice?
-                                newClientData[i][1],
-                                "",
-                                "",
-                                "",
-                                newClientData[i][3],
-                                newClientData[i][4]
-                               ]);
-        */
+    
         
-        agentPaymentSheet.appendRow(["",//sends the line to agent_interim sheet                 Blank (FED No.)
+        agentPaymentSheet.appendRow(["",//sends the line to agent_payment sheet                 Blank (FED No.)
                                      "",
                                      "",
                                      "",
@@ -878,19 +967,47 @@ var DateDiff = {
                                      '=AP_RangeL',                                                         //Qty - WT
                                      '=AP_RangeL',                                                         //Unit Price - Commission
                                      '=IF(AP_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
-                                     '=If(AP_RangeM ="Telemarketed","4201",IF(AP_RangeM = "Self-Generated","4202",IF(AP_RangeM = "Sales Manager Payment", "4301",IF(AP_RangeM = "Bonus","4401",IF(AP_RangeM = "Fuel Contribution","4402",IF(AP_RangeM = "Finders Fee","4302","455"))))))',                                                                //Acc Code - Commission
+                                     '=If(AP_RangeM ="Telemarketed","4201",IF(AP_RangeM = "Self-Generated","4202",IF(AP_RangeM = "Sales Manager", "4301",IF(AP_RangeM = "Bonus","4401",IF(AP_RangeM = "Fuel Contribution","4402",IF(AP_RangeM = "Finders Fee","4302","455"))))))',                                                                //Acc Code - Commission
                                      'WT',                                                                 //Acc Code - WT
                                      '="INPUT2"',                                                          //Tax Rate - Commision
                                      'NONE',                                                               //Tax Rate - WT
                                      '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
                                     ]);
                 
+        AgentRemittanceSheet.appendRow(["",//sends the line to agent_payment sheet                 Blank (FED No.)
+                                     "",
+                                     "",
+                                     "",
+                                     "",
+                                     "",
+                                     newClientData[i][1],                                    // Client Name
+                                     newClientData[i][2],                                    // Agent
+                                     "",                                                     // Blank (Agent Cut %)
+                                     "=VLOOKUP(AI_RangeH,Agents!$C$2:$M,11,0)",              // GST Registered Y/N
+                                     "=VLOOKUP(AI_RangeH,Agents!$C$2:$N,12,0)",              // WT Registered Y/N
+                                     newClientData[i][4],                                    // Unit Price
+                                     newClientData[i][3],                                    // New Client Description
+                                     '=IF(AI_RangeM = "Bonus",AI_RangeM&" Payment", IF(AI_RangeM = "Fuel Contribution",AI_RangeM&" Payment",AI_RangeM&" New Client Registration for "&AI_RangeG))', // Description - Commission
+                                     "Withholding Tax",                                      // Description - WT
+                                     "1",                                                                  //Qty - Commission
+                                     '=AI_RangeL',                                                         //Qty - WT
+                                     '=AI_RangeL',                                                         //Unit Price - Commission
+                                     '=IF(AI_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                     '=If(AI_RangeM ="Telemarketed","4201",IF(AI_RangeM = "Self-Generated","4202",IF(AI_RangeM = "Sales Manager", "4301",IF(AI_RangeM = "Bonus","4401",IF(AI_RangeM = "Fuel Contribution","4402",IF(AI_RangeM = "Finders Fee","4302","455"))))))',                                                                //Acc Code - Commission
+                                     'WT',                                                                 //Acc Code - WT
+                                     '="INPUT2"',                                                          //Tax Rate - Commision
+                                     'NONE',                                                               //Tax Rate - WT
+                                     '=IF(AI_RangeJ = "N","NoTax","Exclusive")',                            //*Tax Type 
+                                     '=VLOOKUP(AI_RangeH,Agents!$C$2:$J,8,0)',                             //agents email address
+                                     '=SPLIT(AI_RangeH," ")'                                               //agents first (alnd last) name, split
+                                    ]);
         
         
         
       }
     }
   }
+
 
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -909,6 +1026,293 @@ var DateDiff = {
       }
     }
   }
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function emailAgentRemittanceAdvice() {
+  //var NZPRcommisionRate = 0.15;        //this is where the NZPR commision is set
+  var ListOfAgents = [];
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet(); //naming the spreadsheet and sheets
+  var AgentRemittanceSheet = ss.getSheetByName("Agent_Remittance");
+  var agentDataSheet = ss.getSheetByName("Agent_Data");
+  var agentTemplateSheet = ss.getSheetByName("Agent_Remit");
+  var salesTemplateSheet = ss.getSheetByName("Sales_Remit");
+
+  AgentRemittanceSheet.getRange("AB2").setFormula("=UNIQUE(H2:H)");
+  AgentRemittanceSheet.getRange("AC2").setFormula("=COUNTA(AB2:AB)");
   
+  var numberOfAgents = AgentRemittanceSheet.getRange(2, 29).getValues(); //get the value of the count formula from AB2, above
+  
+  var data = AgentRemittanceSheet.getDataRange().getValues(); //storing all the data on the interim sheet in an array for use in all calcs
+  //var refundData; //as above but from the refund template; when populated
+  for (n = 0; n < numberOfAgents; ++n) {
+    ListOfAgents[n] = data[n + 1][27]; // 27 is the index of column AB (starting from 0)
+  }
+  
+  var targetAgent;
+
+  var agentsName = [];
+  var agentsEmail = [];
+  var agentsFirstName = [];  
+  
+  /*
+  var BtotalCredit = new Array(numberOfFEDNumbers);
+  var Ffee = new Array(numberOfFEDNumbers);
+      
+  for (var i = 0; i < numberOfFEDNumbers; i++) {
+    BtotalCredit[i] = 0;
+    Ffee[i] = 0;
+  }
+  var KclientRefund = [];
+  
+
+
+  var ClientsFee = new Array(numberOfFEDNumbers); //creates the array ClientsFee, with a length of numberOfFEDNumbers
+  for (var i = 0; i < numberOfFEDNumbers; i++) {  //fills the array ClientsFee with 0s
+    ClientsFee[i] = 0;
+  }
+  */
+  Logger.log(numberOfAgents);
+  Logger.log(ListOfAgents);
+  
+  
+  
+  for (var j = 0; j < numberOfAgents; j++) { //loop for each unique agent to store the caluclated values
+    targetAgent = ListOfAgents[j];
+    
+    Logger.log("target agent " + targetAgent);
+    Logger.log("agent in list " + ListOfAgents[j]);
+    
+    for (var i = 1; i < data.length; i++) { //loop for each line in the spreadsheet
+      if (data[i][7] == targetAgent) { //ensures the data stored in each of the following arrays is for each unique agent
+        
+        Logger.log(data[i][7] + " matches " + targetAgent);
+        //BtotalCredit[j] = +BtotalCredit[j] + +data[i][1];
+        
+        agentDataSheet.appendRow([data[i][0],//writes data from the correct FED number only to the data_sheet
+                                  data[i][1],
+                                  data[i][2],
+                                  data[i][3],
+                                  data[i][4],
+                                  data[i][5],
+                                  data[i][6],
+                                  data[i][7],
+                                  data[i][8],
+                                  data[i][9],
+                                  data[i][10],
+                                  data[i][11],
+                                  data[i][12],
+                                  data[i][13],
+                                  data[i][14],
+                                  data[i][15],
+                                  data[i][16],
+                                  data[i][17],
+                                  data[i][18],
+                                  data[i][19],
+                                  data[i][20],
+                                  data[i][21],
+                                  data[i][22],
+                                  data[i][23],
+                                  data[i][24],
+                                  data[i][25]                                  
+                                  
+                                 ]);
+        
+        agentsName[j] = data[i][7];
+        agentsEmail[j] = data[i][24];
+        agentsFirstName[j] = data[i][25]; 
+        
+        /*
+        ClientsName[j] = data[i][6];
+        ClientsEmail[j] = data[i][12];
+        ClientsFee[j] += data[i][5];
+        ClientsFirstName[j] = data[i][16];
+        
+        KclientRefund[j] = (BtotalCredit[j]/1.15)*(1-NZPRcommisionRate)-ClientsFee[j];
+        KclientRefund[j] = KclientRefund[j].toFixed(2);
+        var clientRefundInclusive = KclientRefund[j] * 1.15;
+        clientRefundInclusive = clientRefundInclusive.toFixed(2);
+        */
+      }
+
+    }
+    //Browser.msgBox('temp', 'pause', Browser.Buttons.OK);
+    //clearAgentDataSheet();
+    
+/*
+    //newer email section of code ********************************************
+
+    var body = "Hi "+agentsFirstName[j]+", <br><br><b>Remittance Advice</b><br> Kind regards,<br><br>Bernard Coogan<br><br>Director<br><br>NZ Petrol Refunds Limited<br><br>nzpetrolrefunds.co.nz<br><br>021 2066 719";
+    var subject = agentsEmail[j];
+    var emailTo = "nathanjeffreyyoung@gmail.com";
+    
+    // Create a new Spreadsheet and copy the current sheet into it.
+    var newSpreadsheet = SpreadsheetApp.create("Spreadsheet to export");
+    var projectname = SpreadsheetApp.getActiveSpreadsheet();
+    
+    if (agentsName[j] == "Simon Hanrahan") {//checks whether its Simon the Sales Manager in order to select the agent or sales manager template 
+      salesTemplateSheet.copyTo(newSpreadsheet);// uses sales manager template
+    } else {
+      agentTemplateSheet.copyTo(newSpreadsheet);// uses agent template
+    }
+    
+    // Find and delete the default "Sheet 1", after the copy to avoid triggering an apocalypse
+    newSpreadsheet.getSheetByName('Sheet1').activate();
+    newSpreadsheet.deleteActiveSheet();
+    
+    // Make zee PDF, currently called "pdf name.pdf"
+    var pdf = DriveApp.getFileById(newSpreadsheet.getId()).getAs('application/pdf').getBytes();
+    var attach = {fileName:'pdf name.pdf',content:pdf, mimeType:'application/pdf'};
+    
+    // Send the freshly constructed email 
+    MailApp.sendEmail(emailTo, subject, body, {htmlBody: body, attachments:[attach]});
+    
+    // Delete the wasted sheet we created, so our Drive stays tidy.
+    DriveApp.getFileById(newSpreadsheet.getId()).setTrashed(true);  
+    //end of email section//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.
+    */
+    //Browser.msgBox('temp', 'pause', Browser.Buttons.OK); ////////////////////////testing !! !! !! !! !! !!
+    clearAgentDataSheet();
+    
+        //PDF CONVERSION AND EMAIL SECTION OF CODE///////////////////////////////////////////                                                        
+    var date = Utilities.formatDate(new Date(), "GMT+12", "dd-MM-yyyy'T'HH:mm:ss'Z'");
+    
+    // Send the PDF of the spreadsheet to this email address
+    //var email = "bernard@nzpetrolrefunds.co.nz"; 
+    //var email = "nathanjeffreyyoung@gmail.com";//testing ************************************** !! !! !! !! !! !!
+    var email = "nzprauto@gmail.com"; 
+    
+    // Subject of email message
+    //var subject = ClientsName[j] +" Invoice(s) " + date.toString();
+    var subject = agentsEmail[j];
+    var body;
+    // Email Body can  be HTML too with your logo image - see ctrlq.org/html-mail
+    //var body = ClientsName[j] +" Invoice(s) " + date.toString();
+    //if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent 
+      body = "Hi "+agentsFirstName[j]+", \r\rPlease find attached your Remittance Advice.\r\rKind regards,\r\rBernard Coogan\r\rDirector\r\rNZ Petrol Refunds Limited\r\rnzpetrolrefunds.co.nz\r\r021 2066 719";
+      
+          
+    //} else {
+      //body = "Hi "+ClientsFirstName[j]+", \r\rWe have received your latest refund from the NZTA and will be loading that up for payment into your account tonight.\r\rYour refund came to $"+clientRefundInclusive+".\r\rPlease see attached payment notice and invoice.\r\rKind regards,\r\rBernard Coogan\r\rDirector\r\rNZ Petrol Refunds Limited\r\rnzpetrolrefunds.co.nz\r\r021 2066 719"
+    //}
+    
+        
+    var url = ss.getUrl();
+    url = url.replace(/edit$/, '');
+
+    /* Specify PDF export parameters
+    // From: https://code.google.com/p/google-apps-script-issues/issues/detail?id=3579
+    exportFormat = pdf / csv / xls / xlsx
+    gridlines = true / false
+    printtitle = true (1) / false (0)
+    size = legal / letter/ A4
+    fzr (repeat frozen rows) = true / false
+    portrait = true (1) / false (0)
+    fitw (fit to page width) = true (1) / false (0)
+    add gid if to export a particular sheet - 0, 1, 2,..
+    */
+
+    var url_ext = 'export?exportFormat=pdf&format=pdf' // export as pdf / csv / xls / xlsx
+      + '&size=letter' // paper size
+      + '&portrait=true' // orientation, false for landscape
+      + '&fitw=true&source=labnol' // fit to width, false for actual size
+      + '&sheetnames=false&printtitle=false' // hide optional headers and footers
+      + '&pagenumbers=false&gridlines=false' // hide page numbers and gridlines
+      + '&fzr=false' // do not repeat row headers (frozen rows) on each page
+      + '&gid='; // the sheet's Id
+
+    var token = ScriptApp.getOAuthToken();
+    var sheets = ss.getSheets();
+
+    //make an empty array to hold your fetched blobs  
+    var blobs = [];
+
+    ///////////////////////////////////////////////////////////////
+    if (agentsName[j] == "Simon Hanrahan") {//checks whether a fee is present to determine what invoices need to be sent
+    
+      for (var i = 8; i < 9; i++) {//selecting sheet 7 to turn into pdf and email
+
+        // Convert individual worksheets to PDF
+        var response = cUseful.Utils.expBackoff(
+          function() {
+            return UrlFetchApp.fetch(url + url_ext + sheets[i].getSheetId(), {
+              headers: {
+                'Authorization': 'Bearer ' + token
+              },
+                muteHttpExceptions: true,
+            });
+          }, {
+            logAttempts: true,
+            lookahead: function(r) {
+              return r.getResponseCode() === 429;
+            }
+          });
+
+        //convert the response to a blob and store in our array
+        //blobs[i] = response.getBlob().setName('Invoice ' + date.toString() + '.pdf');
+        blobs[i] = response.getBlob().setName(sheets[i].getName() + '.pdf');
+        
+      }
+      if (MailApp.getRemainingDailyQuota() > 0)
+            GmailApp.sendEmail(email, subject, body, {
+        attachments: [blobs[8].getAs(MimeType.PDF)],
+        name: 'NZ Petrol Refunds'
+      });
+    }
+    else {
+      for (var i = 8; i < 9; i++) {//selecting sheets 11 to turn into pdf and email
+        
+        // Convert individual worksheets to PDF
+        var response = cUseful.Utils.expBackoff(
+          function() {
+            return UrlFetchApp.fetch(url + url_ext + sheets[i].getSheetId(), {
+                headers: {
+                  'Authorization': 'Bearer ' + token
+                },
+                  muteHttpExceptions: true,
+            });
+          }, {
+            logAttempts: true,
+            lookahead: function(r) {
+              return r.getResponseCode() === 429;
+            }
+          });
+        
+        //convert the response to a blob and store in our array
+        //blobs[i] = response.getBlob().setName('Invoice ' + date.toString() + '.pdf');
+        blobs[i] = response.getBlob().setName(sheets[i].getName() + '.pdf');
+      }
+      
+
+      
+      if (MailApp.getRemainingDailyQuota() > 0)
+        GmailApp.sendEmail(email, subject, body, {
+          attachments: [blobs[8].getAs(MimeType.PDF)],
+          name: 'NZ Petrol Refunds'
+        });
+      
+    }
+   
+    //END OF PDF AND EMAIL SECTION OF CODE/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  }
+  Browser.msgBox('Done', 'The Remittance pdfs for each agent have been created (and draft emails within 5 mins).', Browser.Buttons.OK);
+}
+  
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+function clearAgentDataSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var agentDataSheet = ss.getSheetByName("Agent_Data");
+    
+  agentDataSheet.getRange(2, 1, agentDataSheet.getLastRow(), agentDataSheet.getLastColumn()).clear();
+
+}
+ /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  function clearAgentRemittanceSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var AgentRemittanceSheet = ss.getSheetByName("Agent_Remittance");
+    
+  AgentRemittanceSheet.getRange(2, 1, AgentRemittanceSheet.getLastRow(), AgentRemittanceSheet.getLastColumn()).clear();
+
+}
+ /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
