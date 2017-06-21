@@ -246,6 +246,13 @@ function emailRemittanceAdvice() {
         
         BtotalCredit[j] = +BtotalCredit[j] + +data[i][1];
         
+        ClientsName[j] = data[i][6];
+        ClientsEmail[j] = data[i][12];
+        ClientsFee[j] += data[i][5];
+        ClientsFirstName[j] = data[i][16];
+        var d = new Date();
+        d.setHours(0, 0, 0, 0);
+                
         dataSheet.appendRow([data[i][0],//writes data from the correct FED number only to the data_sheet
                              data[i][1],
                              data[i][2],
@@ -259,12 +266,11 @@ function emailRemittanceAdvice() {
                              data[i][10],
                              data[i][11],
                              data[i][12],
-                             data[i][15] 
+                             data[i][15],
+                             ClientsFirstName[j],
+                             d
                             ]);
-        ClientsName[j] = data[i][6];
-        ClientsEmail[j] = data[i][12];
-        ClientsFee[j] += data[i][5];
-        ClientsFirstName[j] = data[i][16];
+
         
         /*
         KclientRefund[j] = BtotalCredit[j]*(1-NZPRcommisionRate)-ClientsFee[j];
@@ -297,7 +303,89 @@ function emailRemittanceAdvice() {
     var body;
     // Email Body can  be HTML too with your logo image - see ctrlq.org/html-mail
     //var body = ClientsName[j] +" Invoice(s) " + date.toString();
-    if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent 
+    
+            //if (ClientsEmail[j] == "bernard@nzpetrolrefunds.co.nz") {     BERNARD WANTS IT TO BE ADMIN EMAIL ADDRESS 1 March 2017
+            if (ClientsEmail[j] == "admin@nzpetrolrefunds.co.nz") {
+            Logger.log("after if = bernard, clients email is " + ClientsEmail[j]);
+            //code to email with the letter templates
+            body = "Bernard, to print for " + ClientsName[j];
+            var url = ss.getUrl();
+            url = url.replace(/edit$/, '');
+            var url_ext = 'export?exportFormat=pdf&format=pdf' // export as pdf / csv / xls / xlsx
+                + '&size=letter' // paper size
+                + '&portrait=true' // orientation, false for landscape
+                + '&fitw=true&source=labnol' // fit to width, false for actual size
+                + '&sheetnames=false&printtitle=false' // hide optional headers and footers
+                + '&pagenumbers=false&gridlines=false' // hide page numbers and gridlines
+                + '&fzr=false' // do not repeat row headers (frozen rows) on each page
+                + '&gid='; // the sheet's Id
+            var token = ScriptApp.getOAuthToken();
+            var sheets = ss.getSheets();
+            //make an empty array to hold your fetched blobs  
+            var blobs = [];
+            ///////////////////////////////////////////////////////////////
+    
+    if (ClientsFee[j] > 0) {//checks whether a fee is present to determine what invoices need to be sent HERE!!!
+      
+      
+      
+                      for (var i = 7; i < 8; i++) { //selecting sheet 7 to turn into pdf and email
+                    // Convert individual worksheets to PDF
+                    var response = cUseful.Utils.expBackoff(function() {
+                        return UrlFetchApp.fetch(url + url_ext + sheets[i].getSheetId(), {
+                            headers: {
+                                'Authorization': 'Bearer ' + token
+                            },
+                            muteHttpExceptions: true,
+                        });
+                    }, {
+                        logAttempts: true,
+                        lookahead: function(r) {
+                            return r.getResponseCode() === 429;
+                        }
+                    });
+                    //convert the response to a blob and store in our array
+                    //blobs[i] = response.getBlob().setName('Invoice ' + date.toString() + '.pdf');
+                    blobs[i] = response.getBlob().setName(sheets[i].getName() + '.pdf');
+                }
+                if (MailApp.getRemainingDailyQuota() > 0) GmailApp.sendEmail(email, subject, body, {
+                    attachments: [blobs[7].getAs(MimeType.PDF)],
+                    name: 'NZ Petrol Refunds'
+                });
+            } else {
+                for (var i = 8; i < 9; i++) { //selecting sheets 8 to turn into pdf and email
+                    // Convert individual worksheets to PDF
+                    var response = cUseful.Utils.expBackoff(function() {
+                        return UrlFetchApp.fetch(url + url_ext + sheets[i].getSheetId(), {
+                            headers: {
+                                'Authorization': 'Bearer ' + token
+                            },
+                            muteHttpExceptions: true,
+                        });
+                    }, {
+                        logAttempts: true,
+                        lookahead: function(r) {
+                            return r.getResponseCode() === 429;
+                        }
+                    });
+                    //convert the response to a blob and store in our array
+                    //blobs[i] = response.getBlob().setName('Invoice ' + date.toString() + '.pdf');
+                    blobs[i] = response.getBlob().setName(sheets[i].getName() + '.pdf');
+                }
+                if (MailApp.getRemainingDailyQuota() > 0) GmailApp.sendEmail(email, subject, body, {
+                    attachments: [blobs[8].getAs(MimeType.PDF)],
+                    name: 'NZ Petrol Refunds'
+                });
+            }
+        } else {
+            if (ClientsFee[j] > 0) { //checks whether a fee is present to determine what invoices need to be sent 
+      
+      
+      
+      
+      
+      
+      
       body = "Hi "+ClientsFirstName[j]+", \r\rGood news!\r\rWe've received your petrol refund from the NZTA and will be loading that up for payment into your bank account tonight.\r\rYour refund came to $"+clientRefundInclusive+".\r\rAttached to this email is a payment advice summary and our invoices.\r\rPlease note that our fees have been removed already so there is no need to take any action on these.\r\rMoving forward we will be putting a claim in on your behalf at the end of each financial quarter. We'll contact you to update our details in time for the next claim.\r\rPlease let me know if you have any questions.\r\rKind regards,\r\rBernard Coogan\r\rDirector\r\rNZ Petrol Refunds Limited\r\rnzpetrolrefunds.co.nz\r\r021 2066 719";
       
           
@@ -401,7 +489,7 @@ function emailRemittanceAdvice() {
         });
       
     }
-   
+        }
     //END OF PDF AND EMAIL SECTION OF CODE/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////      
 
 
@@ -743,9 +831,10 @@ function sendToXero() {
        }
     }
   
-    
+  }  
     Browser.msgBox('Send to Xero', 'The payment information has been sent to Xero.', Browser.Buttons.OK);
-  }}
+  
+  }
 var DateDiff = {    
     inDays: function(d1, d2) {
         var t2 = d2.getTime();
@@ -1227,9 +1316,9 @@ function emailAgentRemittanceAdvice() {
     var blobs = [];
 
     ///////////////////////////////////////////////////////////////
-    if (agentsName[j] == "Simon Hanrahan") {//checks whether a fee is present to determine what invoices need to be sent
+    if (agentsName[j] == "Simon Hanrahan") {//this if else block is redundant, but am relectant to change for fear of stuffing code(!)
     
-      for (var i = 8; i < 9; i++) {//selecting sheet 7 to turn into pdf and email
+      for (var i = 9; i < 10; i++) {//selecting sheet 9 to turn into pdf and email
 
         // Convert individual worksheets to PDF
         var response = cUseful.Utils.expBackoff(
@@ -1254,12 +1343,12 @@ function emailAgentRemittanceAdvice() {
       }
       if (MailApp.getRemainingDailyQuota() > 0)
             GmailApp.sendEmail(email, subject, body, {
-        attachments: [blobs[8].getAs(MimeType.PDF)],
+        attachments: [blobs[9].getAs(MimeType.PDF)],
         name: 'NZ Petrol Refunds'
       });
     }
     else {
-      for (var i = 8; i < 9; i++) {//selecting sheets 11 to turn into pdf and email
+      for (var i = 9; i < 10; i++) {//selecting sheets 9 to turn into pdf and email
         
         // Convert individual worksheets to PDF
         var response = cUseful.Utils.expBackoff(
@@ -1286,7 +1375,7 @@ function emailAgentRemittanceAdvice() {
       
       if (MailApp.getRemainingDailyQuota() > 0)
         GmailApp.sendEmail(email, subject, body, {
-          attachments: [blobs[8].getAs(MimeType.PDF)],
+          attachments: [blobs[9].getAs(MimeType.PDF)],
           name: 'NZ Petrol Refunds'
         });
       
@@ -1315,4 +1404,3 @@ function clearAgentDataSheet() {
 
 }
  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
