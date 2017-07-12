@@ -302,8 +302,7 @@ function emailRemittanceAdvice() {
     
     // Send the PDF of the spreadsheet to this email address
     //var email = "bernard@nzpetrolrefunds.co.nz"; 
-    //var email = "nzprauto@gmail.com";
-    var email = "barleybender@gmail.com";
+    var email = "nzprauto@gmail.com";
     
     // Subject of email message
     //var subject = ClientsName[j] +" Invoice(s) " + date.toString();
@@ -1275,8 +1274,7 @@ function emailAgentRemittanceAdvice() {
     
     // Send the PDF of the spreadsheet to this email address
     //var email = "bernard@nzpetrolrefunds.co.nz"; 
-    var email = "barleybending@gmail.com";//testing ************************************** !! !! !! !! !! !!
-    //var email = "nzprauto@gmail.com"; 
+    var email = "nzprauto@gmail.com"; 
     
     // Subject of email message
     //var subject = ClientsName[j] +" Invoice(s) " + date.toString();
