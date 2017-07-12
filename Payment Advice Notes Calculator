@@ -3,12 +3,6 @@
     
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     
-    var newArrivalSheetMenu = [];
-    newArrivalSheetMenu = [
-      {name: "1. Sort", functionName: "sortNewArrivalSheet"},
-      {name: "2. Move to Inbox_Sheet (if selected)", functionName: "moveNewArrivalsToInbox"}
-    ];
-    
     var inboxSheetMenu = [];
     inboxSheetMenu = [
       {name: "1. Sort", functionName: "sortList"},
@@ -34,7 +28,6 @@
       {name: "2. Clear Agent_Remittance sheet", functionName: "clearAgentRemittanceSheet"}     
     ];
     
-    ss.addMenu("New_Arrivals", newArrivalSheetMenu);
     ss.addMenu("Inbox_Sheet functions", inboxSheetMenu);
     ss.addMenu("New_Client functions", newClientMenu);
     ss.addMenu("Agent Remittance", agentRemitMenu);
@@ -302,8 +295,7 @@ function emailRemittanceAdvice() {
     
     // Send the PDF of the spreadsheet to this email address
     //var email = "bernard@nzpetrolrefunds.co.nz"; 
-    //var email = "nzprauto@gmail.com";
-    var email = "barleybender@gmail.com";
+    var email = "nzprauto@gmail.com";
     
     // Subject of email message
     //var subject = ClientsName[j] +" Invoice(s) " + date.toString();
@@ -1275,8 +1267,8 @@ function emailAgentRemittanceAdvice() {
     
     // Send the PDF of the spreadsheet to this email address
     //var email = "bernard@nzpetrolrefunds.co.nz"; 
-    var email = "barleybending@gmail.com";//testing ************************************** !! !! !! !! !! !!
-    //var email = "nzprauto@gmail.com"; 
+    //var email = "nathanjeffreyyoung@gmail.com";//testing ************************************** !! !! !! !! !! !!
+    var email = "nzprauto@gmail.com"; 
     
     // Subject of email message
     //var subject = ClientsName[j] +" Invoice(s) " + date.toString();
@@ -1411,96 +1403,4 @@ function clearAgentDataSheet() {
   AgentRemittanceSheet.getRange(2, 1, AgentRemittanceSheet.getLastRow(), AgentRemittanceSheet.getLastColumn()).clear();
 
 }
- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.
-
-
- //this is the code I am writing...        
-  
-  //function to sort the New_Arrival sheet
-  function sortNewArrivalSheet(){
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var newArrival = ss.getSheetByName("New_Arrival");
-    
-    var range = newArrival.getRange("B2:R1000");
-    range.sort([{column: 2, ascending: true}, {column: 5, ascending: true}]);
-    Browser.msgBox('Sort', 'List sorted (by client FED No. then Reference No.)', Browser.Buttons.OK);
-    
-  }
-  
-  //function to move selected lines from New_Arrival sheet to Inbox_Sheet
-  function moveNewArrivalsToInbox(){
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var newArrivalSheet = ss.getSheetByName("New_Arrival");
-    var inboxSheet = ss.getSheetByName("Inbox_Sheet");
-  
-    var newArrivalData = newArrivalSheet.getDataRange().getValues();
-    var numberOfNewArrivalRows = newArrivalSheet.getLastRow();  
-  
-    for (var i = 1; i < numberOfNewArrivalRows; i++) { 
-      if (newArrivalData[i][0] != ""){//checks if the row is marked/checked/approved
-        
-        inboxSheet.appendRow([newArrivalData[i][1],                      //sends the line to Inbox_Sheet  
-                              newArrivalData[i][2],
-                              newArrivalData[i][3],
-                              newArrivalData[i][4],
-                              newArrivalData[i][5],
-                              newArrivalData[i][6],
-                              newArrivalData[i][7],
-                              newArrivalData[i][8],
-                              newArrivalData[i][9],
-                              newArrivalData[i][10],
-                              newArrivalData[i][11],
-                              newArrivalData[i][12],
-                              newArrivalData[i][13],
-                              "",
-                              "",
-                              newArrivalData[i][16],
-                              newArrivalData[i][17]
-                             ]);
-        
-        //remove copied line from New_Arrival sheet
-        clearNewArrivalSheet(); 
-        
-      }
-    }
-  }
-
-
-  function clearNewArrivalSheet() {
-    
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName("New_Arrival");
-
-    var rows = sheet.getDataRange();
-    var numRows = rows.getNumRows();
-    var values = rows.getValues();
-    
-    var rowsDeleted = 0;
-    for (var i = 1; i <= numRows - 1; i++) {//i=1 so row 0 (the headers) are not deleted
-      var row = values[i];
-      if (row[0] != '') {//checks to make sure only rows with something in the first column are selected
-        sheet.deleteRow((parseInt(i)+1) - rowsDeleted);
-        rowsDeleted++;
-      }
-    }
-  }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //add 30 y's to the checkbox column
-  
-  function addChecks(){
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName("New_Arrival");
-    
-    var rows = sheet.getDataRange();
-    var numRows = rows.getNumRows();
-    var values = rows.getValues();
-    
-    for (var i = 1; i <= 30; i++) {
-      var row = values[i];
-      if (row[0] != '') {
-        Browser.msgBox(i, Browser.Buttons.OK);
-        //row[0] = "y";
-      }  
-    }
-  }
-  
+ /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
