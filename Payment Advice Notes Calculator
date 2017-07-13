@@ -665,7 +665,8 @@ function sendToXero() {
                                  'WT',                                                                 //Acc Code - WT
                                  '="INPUT2"',                                                          //Tax Rate - Commision
                                  'NONE',                                                               //Tax Rate - WT
-                                 '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
+                                 '=IF(AP_RangeJ = "N","NoTax","Exclusive")',                           //*Tax Type 
+                                 '=VLOOKUP(Agent_Payment!AP_RangeH,Agents!$C$2:$S,17,0)'               //agent active
                                 ]);
     
     
