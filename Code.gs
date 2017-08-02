@@ -278,7 +278,8 @@ function emailRemittanceAdvice() {
                              data[i][12],
                              data[i][15],
                              ClientsFirstName[j],
-                             d
+                             d,
+                             data[i][17]
                             ]);
 
         
