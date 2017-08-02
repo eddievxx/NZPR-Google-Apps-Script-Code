@@ -304,8 +304,8 @@ function emailRemittanceAdvice() {
         else {
           JnzprCommission[j] = JnzprCommission[j];
         }
-      
-        KclientRefund[j] = (BtotalCredit[j]/1.15 - JnzprCommission[j])/1.15;   
+           
+        KclientRefund[j] = (BtotalCredit[j]/1.15 - JnzprCommission[j]);   
         //KclientRefund[j] = (BtotalCredit[j]/1.15)*(1-NZPRcommisionRate)-ClientsFee[j];
         KclientRefund[j] = KclientRefund[j].toFixed(2);
         
@@ -664,7 +664,7 @@ function sendToXero() {
         JnzprCommission[j] = JnzprCommission[j];
       }
       
-      KclientRefund[j] = (BtotalCredit[j]/1.15 - JnzprCommission[j])/1.15;   
+      KclientRefund[j] = (BtotalCredit[j]/1.15 - JnzprCommission[j]);   
       
       
       
