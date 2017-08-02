@@ -237,6 +237,8 @@ function emailRemittanceAdvice() {
     Ffee[i] = 0;
   }
   var KclientRefund = [];
+  var JnzprCommission = [];
+  var minimumCharge = [];
   
 
 
@@ -257,6 +259,7 @@ function emailRemittanceAdvice() {
         ClientsEmail[j] = data[i][12];
         ClientsFee[j] += data[i][5];
         ClientsFirstName[j] = data[i][16];
+        minimumCharge[j] = data[i][17];
         var d = new Date();
         d.setHours(0, 0, 0, 0);
                 
@@ -283,11 +286,33 @@ function emailRemittanceAdvice() {
         KclientRefund[j] = BtotalCredit[j]*(1-NZPRcommisionRate)-ClientsFee[j];
         KclientRefund[j] = KclientRefund[j].toFixed(2);
         */
+
+
+
         
-        KclientRefund[j] = (BtotalCredit[j]/1.15)*(1-NZPRcommisionRate)-ClientsFee[j];
+        //new code with the minimum charge changes
+      
+        JnzprCommission[j] = (BtotalCredit[j]/1.15)*NZPRcommisionRate+Ffee[j];
+      
+        if (BtotalCredit[j] < minimumCharge[j]){
+          JnzprCommission[j] = BtotalCredit[j];
+        }      
+        else if (minimumCharge[j] > JnzprCommission[j]){
+          JnzprCommission[j] = minimumCharge[j];
+        }
+        else {
+          JnzprCommission[j] = JnzprCommission[j];
+        }
+      
+        KclientRefund[j] = (BtotalCredit[j] - JnzprCommission[j])/1.15;   
+        //KclientRefund[j] = (BtotalCredit[j]/1.15)*(1-NZPRcommisionRate)-ClientsFee[j];
         KclientRefund[j] = KclientRefund[j].toFixed(2);
+        
+        
         var clientRefundInclusive = KclientRefund[j] * 1.15;
         clientRefundInclusive = clientRefundInclusive.toFixed(2);
+        
+        
       }
 
     }
@@ -590,6 +615,8 @@ function sendToXero() {
   var GclientName = [];
   var Hagent = [];
   var IagentCut = [];
+    
+  var minimumCharge = [];
   
   var JnzprCommission = [];
   var KclientRefund = [];
@@ -614,11 +641,34 @@ function sendToXero() {
         GclientName[j] = data[i][6];
         Hagent[j] = data[i][7];
         IagentCut[j] = data[i][8];
+        minimumCharge[j] = data[i][17];
       }
       
+      
+      //JnzprCommission[j] = (BtotalCredit[j]/1.15)*NZPRcommisionRate+Ffee[j];
+      //KclientRefund[j] = (BtotalCredit[j]/1.15)*(1-NZPRcommisionRate)-Ffee[j];
+      
+      
+      //new code with the minimum charge changes
+      
       JnzprCommission[j] = (BtotalCredit[j]/1.15)*NZPRcommisionRate+Ffee[j];
-      KclientRefund[j] = (BtotalCredit[j]/1.15)*(1-NZPRcommisionRate)-Ffee[j];
-      LagentCommission[j] = (BtotalCredit[j]/1.15)*(IagentCut[j]/100);
+      
+      if (BtotalCredit[j] < minimumCharge[j]){
+        JnzprCommission[j] = BtotalCredit[j];
+      }      
+      else if (minimumCharge[j] > JnzprCommission[j]){
+        JnzprCommission[j] = minimumCharge[j];
+      }
+      else {
+        JnzprCommission[j] = JnzprCommission[j];
+      }
+      
+      KclientRefund[j] = (BtotalCredit[j] - JnzprCommission[j])/1.15;   
+      
+      
+      
+      
+      //LagentCommission[j] = (BtotalCredit[j]/1.15)*(IagentCut[j]/100); //no longer used (an old change, perhaps this was never used?)
       
     }
     
@@ -1411,9 +1461,6 @@ function clearAgentDataSheet() {
 
 }
  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.
-
-
- //this is the code I am writing...        
   
   //function to sort the New_Arrival sheet
   function sortNewArrivalSheet(){
@@ -1454,7 +1501,8 @@ function clearAgentDataSheet() {
                               "",
                               "",
                               newArrivalData[i][16],
-                              newArrivalData[i][17]
+                              newArrivalData[i][17],
+                              newArrivalData[i][18]
                              ]);
         
         //remove copied line from New_Arrival sheet
