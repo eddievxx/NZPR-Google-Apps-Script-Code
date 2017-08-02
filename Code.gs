@@ -295,8 +295,8 @@ function emailRemittanceAdvice() {
       
         JnzprCommission[j] = (BtotalCredit[j]/1.15)*NZPRcommisionRate+Ffee[j];
       
-        if (BtotalCredit[j] < minimumCharge[j]){
-          JnzprCommission[j] = BtotalCredit[j];
+        if (BtotalCredit[j]/1.15 < minimumCharge[j]){
+          JnzprCommission[j] = BtotalCredit[j]/1.15;
         }      
         else if (minimumCharge[j] > JnzprCommission[j]){
           JnzprCommission[j] = minimumCharge[j];
@@ -305,7 +305,7 @@ function emailRemittanceAdvice() {
           JnzprCommission[j] = JnzprCommission[j];
         }
       
-        KclientRefund[j] = (BtotalCredit[j] - JnzprCommission[j])/1.15;   
+        KclientRefund[j] = (BtotalCredit[j]/1.15 - JnzprCommission[j])/1.15;   
         //KclientRefund[j] = (BtotalCredit[j]/1.15)*(1-NZPRcommisionRate)-ClientsFee[j];
         KclientRefund[j] = KclientRefund[j].toFixed(2);
         
@@ -654,8 +654,8 @@ function sendToXero() {
       
       JnzprCommission[j] = (BtotalCredit[j]/1.15)*NZPRcommisionRate+Ffee[j];
       
-      if (BtotalCredit[j] < minimumCharge[j]){
-        JnzprCommission[j] = BtotalCredit[j];
+      if (BtotalCredit[j]/1.15 < minimumCharge[j]){
+        JnzprCommission[j] = BtotalCredit[j]/1.15;
       }      
       else if (minimumCharge[j] > JnzprCommission[j]){
         JnzprCommission[j] = minimumCharge[j];
@@ -664,7 +664,7 @@ function sendToXero() {
         JnzprCommission[j] = JnzprCommission[j];
       }
       
-      KclientRefund[j] = (BtotalCredit[j] - JnzprCommission[j])/1.15;   
+      KclientRefund[j] = (BtotalCredit[j]/1.15 - JnzprCommission[j])/1.15;   
       
       
       
