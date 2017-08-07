@@ -310,7 +310,7 @@ function emailRemittanceAdvice() {
         KclientRefund[j] = KclientRefund[j].toFixed(2);
         
         
-        var clientRefundInclusive = KclientRefund[j] * 1.15;
+        var clientRefundInclusive = (KclientRefund[j] * 1.15)-(ClientsFee[j]*1.15);
         clientRefundInclusive = clientRefundInclusive.toFixed(2);
         
         
