@@ -739,7 +739,7 @@ function sendToXero() {
                                  "1",                                                                  //Qty - Commission
                                  '=AI_RangeL',                                                         //Qty - WT
                                  '=AI_RangeL',                                                         //Unit Price - Commission
-                                 '=IF(AI_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                 '=IF(AP_RangeK="Y",VLOOKUP(AP_RangeH,Agents!$C$2:$V,20,0)/(-100),"0")',   //Unit Price - WT                      
                                  "455",                                                                //Acc Code - Commission - Agent
                                  'WT',                                                                 //Acc Code - WT
                                  '="INPUT2"',                                                          //Tax Rate - Commision
@@ -784,12 +784,13 @@ function sendToXero() {
                                        "1",                                                                  //Qty - Commission
                                        '=AP_RangeL',                                                         //Qty - WT
                                        '=AP_RangeL',                                                         //Unit Price - Commission
-                                       '=IF(AP_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                       '=IF(AP_RangeK="Y",VLOOKUP(AP_RangeH,Agents!$C$2:$V,20,0)/(-100),"0")',   //Unit Price - WT                      
                                        "457",                                                                //Acc Code - Commission - SalesManager
                                        'WT',                                                                 //Acc Code - WT
                                        '="INPUT2"',                                                          //Tax Rate - Commision
                                        'NONE',                                                               //Tax Rate - WT
-                                       '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
+                                       '=IF(AP_RangeJ = "N","NoTax","Exclusive")',                           //*Tax Type
+                                       '=VLOOKUP(Agent_Payment!AP_RangeH,Agents!$C$2:$S,17,0)'               //agent active
                                       ]);
           
           AgentRemittanceSheet.appendRow([ListOfFEDNumbers[k],
@@ -810,7 +811,7 @@ function sendToXero() {
                                        "1",                                                                  //Qty - Commission
                                        '=AI_RangeL',                                                         //Qty - WT
                                        '=AI_RangeL',                                                         //Unit Price - Commission
-                                       '=IF(AI_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                       '=IF(AP_RangeK="Y",VLOOKUP(AP_RangeH,Agents!$C$2:$V,20,0)/(-100),"0")',   //Unit Price - WT                      
                                        "457",                                                                //Acc Code - Commission - SalesManager
                                        'WT',                                                                 //Acc Code - WT
                                        '="INPUT2"',                                                          //Tax Rate - Commision
@@ -851,12 +852,13 @@ function sendToXero() {
                                       "1",                                                                  //Qty - Commission
                                       '=AP_RangeL',                                                         //Qty - WT
                                       '=AP_RangeL',                                                         //Unit Price - Commission
-                                      '=IF(AP_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                      '=IF(AP_RangeK="Y",VLOOKUP(AP_RangeH,Agents!$C$2:$V,20,0)/(-100),"0")',   //Unit Price - WT                      
                                       "456",                                                                //Acc Code - Commission - Finder
                                       'WT',                                                                 //Acc Code - WT
                                       '="INPUT2"',                                                          //Tax Rate - Commision
                                       'NONE',                                                               //Tax Rate - WT
-                                      '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
+                                      '=IF(AP_RangeJ = "N","NoTax","Exclusive")',                           //*Tax Type
+                                      '=VLOOKUP(Agent_Payment!AP_RangeH,Agents!$C$2:$S,17,0)'               //agent active
                                      ]);
          
          AgentRemittanceSheet.appendRow([ListOfFEDNumbers[k],//to agent interim sheet to hold for creating remittance advice
@@ -877,7 +879,7 @@ function sendToXero() {
                                       "1",                                                                  //Qty - Commission
                                       '=AI_RangeL',                                                         //Qty - WT
                                       '=AI_RangeL',                                                         //Unit Price - Commission
-                                      '=IF(AI_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                      '=IF(AP_RangeK="Y",VLOOKUP(AP_RangeH,Agents!$C$2:$V,20,0)/(-100),"0")',   //Unit Price - WT                      
                                       "456",                                                                //Acc Code - Commission - Finder
                                       'WT',                                                                 //Acc Code - WT
                                       '="INPUT2"',                                                          //Tax Rate - Commision
@@ -1114,12 +1116,13 @@ var DateDiff = {
                                      "1",                                                                  //Qty - Commission
                                      '=AP_RangeL',                                                         //Qty - WT
                                      '=AP_RangeL',                                                         //Unit Price - Commission
-                                     '=IF(AP_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                     '=IF(AP_RangeK="Y",VLOOKUP(AP_RangeH,Agents!$C$2:$V,20,0)/(-100),"0")',   //Unit Price - WT                      
                                      '=If(AP_RangeM ="Telemarketed","4201",IF(AP_RangeM = "Self-Generated","4202",IF(AP_RangeM = "Sales Manager", "4301",IF(AP_RangeM = "Bonus","4401",IF(AP_RangeM = "Fuel Contribution","4402",IF(AP_RangeM = "Finders Fee","4302","455"))))))',                                                                //Acc Code - Commission
                                      'WT',                                                                 //Acc Code - WT
                                      '="INPUT2"',                                                          //Tax Rate - Commision
                                      'NONE',                                                               //Tax Rate - WT
-                                     '=IF(AP_RangeJ = "N","NoTax","Exclusive")'                            //*Tax Type 
+                                     '=IF(AP_RangeJ = "N","NoTax","Exclusive")',                           //*Tax Type 
+                                     '=VLOOKUP(Agent_Payment!AP_RangeH,Agents!$C$2:$S,17,0)'               //agent active
                                     ]);
                 
         AgentRemittanceSheet.appendRow(["",//sends the line to agent_payment sheet                 Blank (FED No.)
@@ -1140,7 +1143,7 @@ var DateDiff = {
                                      "1",                                                                  //Qty - Commission
                                      '=AI_RangeL',                                                         //Qty - WT
                                      '=AI_RangeL',                                                         //Unit Price - Commission
-                                     '=IF(AI_RangeK="Y",-0.2,"0")',                                        //Unit Price - WT                      
+                                     '=IF(AP_RangeK="Y",VLOOKUP(AP_RangeH,Agents!$C$2:$V,20,0)/(-100),"0")',   //Unit Price - WT                      
                                      '=If(AI_RangeM ="Telemarketed","4201",IF(AI_RangeM = "Self-Generated","4202",IF(AI_RangeM = "Sales Manager", "4301",IF(AI_RangeM = "Bonus","4401",IF(AI_RangeM = "Fuel Contribution","4402",IF(AI_RangeM = "Finders Fee","4302","455"))))))',                                                                //Acc Code - Commission
                                      'WT',                                                                 //Acc Code - WT
                                      '="INPUT2"',                                                          //Tax Rate - Commision
