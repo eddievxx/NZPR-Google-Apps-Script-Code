@@ -328,7 +328,7 @@ function emailRemittanceAdvice() {
     
     // Send the PDF of the spreadsheet to this email address
     //var email = "bernard@nzpetrolrefunds.co.nz"; 
-    var email = "barleybender@gmail.com";//= "nzprauto@gmail.com";
+    var email = "nzprauto@gmail.com";
     
     // Subject of email message
     //var subject = ClientsName[j] +" Invoice(s) " + date.toString();
@@ -593,7 +593,7 @@ function sendToXero() {
   for(n=0; n < numberOfFEDNumbers; ++n){
     ListOfFEDNumbers[n] = data[n+1][13]; // 13 is the index of the column (starting from 0)
   }
-          
+  
   Logger.log(numberOfFEDNumbers);
   Logger.log(ListOfFEDNumbers);
   
@@ -692,7 +692,7 @@ function sendToXero() {
                            KclientRefund[k]
                           ]);
     
-    // getting active agents and number thereof:
+// getting active agents and number thereof:
     var agentSheet = ss.getSheetByName("Agents");
     
     var agentData = agentSheet.getDataRange().getValues(); 
@@ -771,8 +771,6 @@ function sendToXero() {
                                 ]);
       }
     } 
-  
-
     
     
     //sends Sales Manager recurring payments to agent_payment sheet (for Xero)
@@ -1354,7 +1352,7 @@ function emailAgentRemittanceAdvice() {
     
     // Send the PDF of the spreadsheet to this email address
     //var email = "bernard@nzpetrolrefunds.co.nz"; 
-    var email = "barleybender@gmail.com";//= "nzprauto@gmail.com";
+    var email = "nzprauto@gmail.com"; 
     
     // Subject of email message
     //var subject = ClientsName[j] +" Invoice(s) " + date.toString();
@@ -1579,24 +1577,5 @@ function clearAgentDataSheet() {
       }  
     }
   }
-    
-  function getActiveAgents(){
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var agentSheet = ss.getSheetByName("Agents");
-    
-    var agentData = agentSheet.getDataRange().getValues(); 
-        
-    var numberOfActiveAgents = agentData[1][22];
-    Logger.log(numberOfActiveAgents);
-    
-    var activeAgents = [];
-    
-    for (var i = 1; i < numberOfActiveAgents+1; i++){
-      activeAgents[i] = agentData[i][19];
-      Logger.log(activeAgents[i]);
-    }
-    
-    return activeAgents;
-   
-  }
+  
   
